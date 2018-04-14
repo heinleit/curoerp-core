@@ -5,6 +5,7 @@
   <version>0.0.1</version>
   <name>Curo Core</name>
   <build>
+	<finalName>${jar.finalName}</finalName>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
@@ -56,6 +57,6 @@
   	<url>http://hendrik-heinle.de</url>
   </organization>
   <properties>
-  	<jar.finalName>Core</jar.finalName>
+  	<jar.finalName>${project.artifactId}-${project.version}</jar.finalName>
   </properties>
 </project>
