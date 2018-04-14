@@ -50,7 +50,12 @@
 
     </dependency>
 
-</dependencies>
+    <dependency>
+    	<groupId>commons-io</groupId>
+    	<artifactId>commons-io</artifactId>
+    	<version>2.6</version>
+    </dependency>
+  </dependencies>
   <url>http://curoerp.de</url>
   <organization>
   	<name>Hendrik Heinle IT-Systeme</name>

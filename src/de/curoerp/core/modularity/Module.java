@@ -2,17 +2,22 @@ package de.curoerp.core.modularity;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.jar.JarFile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import de.curoerp.core.modularity.info.ModuleInfo;
+
 public class Module {
 	
 	private File file;
-	private JarFile jarFile;
 	private boolean isLoaded = false;
+	private ModuleInfo info;
 	
 	public Module(File file) {
 		this.file = file;
@@ -22,10 +27,22 @@ public class Module {
 		return this.file.getName();
 	}
 	
+	public ModuleInfo getInfo() {
+		return this.info;
+	}
+	
 	public void loadInfo() throws ModuleCanNotBeLoadedException {
+		ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 		try {
-			this.jarFile = new JarFile(this.file);
+			JarFile jarFile = new JarFile(this.file);
+			InputStream stream = jarFile.getInputStream(jarFile.getEntry("cmod.yml"));
+			ModuleInfo info = mapper.readValue(stream, ModuleInfo.class);
 			
+			//cleanup
+			stream.close();
+			jarFile.close();
+			
+			this.info = info;
 		} catch (IOException e) {
 			throw new ModuleCanNotBeLoadedException();
 		}
@@ -36,7 +53,7 @@ public class Module {
 	 * @throws ModuleFileAlreadyLoadedException 
 	 * @throws ModuleCanNotBeLoadedException 
 	 */
-	public void loadFile() throws ModuleFileAlreadyLoadedException, ModuleCanNotBeLoadedException {
+	public void fetchJar() throws ModuleFileAlreadyLoadedException, ModuleCanNotBeLoadedException {
 		if(this.isLoaded) {
 			throw new ModuleFileAlreadyLoadedException();
 		}
@@ -46,13 +63,16 @@ public class Module {
 			URLClassLoader classLoader = (URLClassLoader)ClassLoader.getSystemClassLoader();
 			method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
 			method.setAccessible(true);
-			method.invoke(classLoader, new URI(this.file.toString()).toURL());
-		} catch(Exception e) {
+			method.invoke(classLoader, new URL("file://" + this.file));
+		}
+		catch(Exception e) {
+			e.printStackTrace();
 			throw new ModuleCanNotBeLoadedException();
 		}
-		
-		if(method != null) {
-			method.setAccessible(false);
+		finally {
+			if(method != null) {
+				method.setAccessible(false);
+			}
 		}
 		
 		this.isLoaded = true;
