@@ -55,4 +55,7 @@
   	<name>Hendrik Heinle IT-Systeme</name>
   	<url>http://hendrik-heinle.de</url>
   </organization>
+  <properties>
+  	<jar.finalName>Core</jar.finalName>
+  </properties>
 </project>
