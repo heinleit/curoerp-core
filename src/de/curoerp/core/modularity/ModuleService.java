@@ -9,9 +9,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.stream.Collector;
-
-import com.fasterxml.jackson.dataformat.yaml.snakeyaml.constructor.ConstructorException;
 
 import de.curoerp.core.exception.RuntimeTroubleException;
 import de.curoerp.core.logging.LoggingService;
@@ -128,7 +125,6 @@ public class ModuleService {
 		// check resolvement in types
 		for (TypeInfo type : module.getInfo().getTypeInfos()) {
 			Class<?> typeClass = null;
-			Class<?> apiClass = null;
 			ArrayList<Class<?>> unresolved = new ArrayList<>();
 
 			// 1st: check type-class
@@ -148,10 +144,10 @@ public class ModuleService {
 
 				// search api-class
 				try {
-					final Class<?> fApiClass = apiClass = Class.forName(type.getApi());
+					final Class<?> apiClass = Class.forName(type.getApi());
 
 					// Controller realy implements api?
-					if(!Arrays.asList(typeClass.getInterfaces()).stream().anyMatch(impl -> impl.isAssignableFrom(fApiClass))) {
+					if(!Arrays.asList(typeClass.getInterfaces()).stream().anyMatch(impl -> impl.isAssignableFrom(apiClass))) {
 						throw new ModuleControllerDoesntImplementApiException();
 					}
 				} catch (ClassNotFoundException e) {
@@ -174,8 +170,8 @@ public class ModuleService {
 
 				// 6th: check internal resolvements
 				for (TypeInfo other : module.getInfo().getTypeInfos()) {
-					unresolved.remove(other.getApi());
-					unresolved.remove(other.getType());
+					unresolved.remove(unresolved.stream().filter(c -> c.getName().equals(other.getApi())).findFirst().orElse(null));
+					unresolved.remove(unresolved.stream().filter(c -> c.getName().equals(other.getType())).findFirst().orElse(null));
 				}
 
 				// 7th: check external resolvements
@@ -198,9 +194,6 @@ public class ModuleService {
 			// Last, but not least
 			// 9th: put type and api in resolvable Map
 			queue.put(typeClass.getName(), typeClass);
-			/*Bist du behindert?! if(apiClass != null) {
-				queue.put(apiClass.getName(), apiClass);
-			}*/
 		}
 
 		// ### Now we can say that there is no lack of dependence anymore. 
