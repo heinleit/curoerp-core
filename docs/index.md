@@ -1,3 +1,5 @@
 # CuroERP Core
 
-Test!
+## Index:
+
+* [Dependency loading System](Dependency_loading_System/index.md)
