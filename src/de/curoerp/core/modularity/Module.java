@@ -15,6 +15,13 @@ import de.curoerp.core.modularity.exception.ModuleCanNotBeLoadedException;
 import de.curoerp.core.modularity.exception.ModuleFileAlreadyLoadedException;
 import de.curoerp.core.modularity.info.ModuleInfo;
 
+/**
+ * Module-Model for..
+ * @category Dependency loading System
+ * 
+ * @author Hendrik Heinle
+ * @since 15.04.2018
+ */
 public class Module {
 	
 	private File file;
