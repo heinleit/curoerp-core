@@ -12,7 +12,7 @@ public class Runtime {
 		
 		try {
 			ModuleService service = new ModuleService();
-			service.findModules(new File("/home/hheinle/curoerp/modules/"));
+			service.loadModules(new File("/home/hheinle/curoerp/modules/"));
 			service.boot();
 			
 		} catch (RuntimeTroubleException e) {

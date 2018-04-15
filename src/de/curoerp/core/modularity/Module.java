@@ -25,10 +25,6 @@ public class Module {
 		this.file = file;
 	}
 	
-//	public String getModuleName() {
-//		return this.file.getName();
-//	}
-	
 	public ModuleInfo getInfo() {
 		return this.info;
 	}

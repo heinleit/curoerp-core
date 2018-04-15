@@ -12,6 +12,7 @@ import java.util.Optional;
 
 import de.curoerp.core.exception.RuntimeTroubleException;
 import de.curoerp.core.logging.LoggingService;
+import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
 import de.curoerp.core.modularity.exception.ModuleApiClassNotFoundException;
 import de.curoerp.core.modularity.exception.ModuleBasePathNotExistsException;
 import de.curoerp.core.modularity.exception.ModuleCanNotBeLoadedException;
@@ -22,6 +23,13 @@ import de.curoerp.core.modularity.exception.ModuleDependencyUnresolvableExceptio
 import de.curoerp.core.modularity.exception.ModuleFileAlreadyLoadedException;
 import de.curoerp.core.modularity.info.TypeInfo;
 
+/**
+ * Central Module Service for internal..
+ * @category Dependency loading System 
+ * 
+ * @author Hendrik Heinle
+ * @since 15.04.2018
+ */
 public class ModuleService {
 
 	private Module[] modules = new Module[0];
@@ -30,8 +38,59 @@ public class ModuleService {
 	public ModuleService() {
 		//
 	}
+	
+	/**
+	 * find instance of type (String)
+	 * 
+	 * @param fqcn {@link String} full qualified class name
+	 * @return T instance of fqcn
+	 * 
+	 * @throws DependencyNotResolvedException
+	 */
+	public Object findInstanceOf(String fqcn) throws DependencyNotResolvedException {
+		if(!this.resolvedDependencies.containsKey(fqcn)) {
+			try {
+				return findInstanceOf(Class.forName(fqcn));
+			} catch (ClassNotFoundException e) {
+				throw new DependencyNotResolvedException();
+			}
+		}
+		
+		return this.resolvedDependencies.get(fqcn);
+	}
+	
+	/**
+	 * find instance of type (Class<T>)
+	 * 
+	 * @param cls Class<T>
+	 * @return T instance of cls
+	 * 
+	 * @throws DependencyNotResolvedException
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> T findInstanceOf(Class<T> cls) throws DependencyNotResolvedException {
+		if(!this.resolvedDependencies.containsKey(cls.getName())) {
+			Optional<String> key = this.resolvedDependencies.entrySet().stream()
+					.filter(e -> cls.isAssignableFrom(e.getValue().getClass()))
+					.map(e -> e.getKey())
+					.findFirst();
+			if(key.isPresent()) {
+				return (T) this.resolvedDependencies.get(key.get());
+			}
 
-	public void findModules(File directory) {
+			throw new DependencyNotResolvedException();
+		}
+		
+		return (T) this.resolvedDependencies.get(cls.getName());
+	}
+
+	/**
+	 * load modules in directory
+	 * NEVER AFTER BOOT!
+	 * 
+	 * @param directory {@link File}
+	 */
+	public void loadModules(File directory) {
 		if(!directory.exists() || !directory.isDirectory()) {
 			throw new RuntimeTroubleException(new ModuleBasePathNotExistsException());
 		}
@@ -54,9 +113,31 @@ public class ModuleService {
 		this.modules = modules;
 	}
 
+	/**
+	 * Boot the Module-System
+	 * 
+	 * @throws RuntimeTroubleException => something went wrong :/ Please check code or Modules
+	 */
 	public void boot() {
 
 		// Fetch&Load Jars in Runtime
+		this.hang();
+
+		// Check dependencies
+		this.check();
+
+		// Resolve dependencies
+		this.resolve();
+
+		LoggingService.info("boot progress successful finished"); 
+	}
+	
+	/**
+	 * hang every module-jar in runtime
+	 * 
+	 * @throws RuntimeTroubleException => something went wrong :/ Please check code or Modules
+	 */
+	private void hang() {
 		for (Module module : this.modules) {
 			try {
 				module.fetchJar();
@@ -65,19 +146,45 @@ public class ModuleService {
 			}
 		}
 		LoggingService.info("jars successfully loaded in the runtime");
-
-		// Check dependencies
+	}
+	
+	
+	/**
+	 * check every dependency in all modules
+	 * 
+	 * @throws RuntimeTroubleException => something went wrong :/ Please check code or Modules
+	 */
+	private void check() {
 		for (Module module : this.modules) {
-			for (String dependency : module.getInfo().getDependencies()) {
-				if(!Arrays.stream(this.modules).anyMatch(dModule -> dModule.getInfo().getName().equalsIgnoreCase(dependency))) {
-					throw new RuntimeTroubleException(new ModuleDependencyUnresolvableException(dependency));
-				}
+			String dependency = this.findUnresolvedDependency(module);
+			if(dependency != null) {
+				throw new RuntimeTroubleException(new ModuleDependencyUnresolvableException(dependency));
 			}
 		}
 		LoggingService.info("all dependencies found");
-
-
-		// Resolve dependencies
+	}
+	
+	/**
+	 * find first unresolved dependency for module
+	 * 
+	 * @param module Module
+	 * @return [String=first unresolved dependency]|[null=no unresolved dependencies]
+	 */
+	public String findUnresolvedDependency(Module module) {
+		for (String dependency : module.getInfo().getDependencies()) {
+			if(!Arrays.stream(this.modules).anyMatch(dModule -> dModule.getInfo().getName().equalsIgnoreCase(dependency))) {
+				return dependency;
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Resolve every dependency
+	 * 
+	 * @throws RuntimeTroubleException => something went wrong :/ Please check code or Modules
+	 */
+	private void resolve() {
 		this.resolvedDependencies = new HashMap<>();
 		ArrayList<Module> unresolved = new ArrayList<Module>(Arrays.asList(this.modules));
 		ArrayList<String> unsucceeded = new ArrayList<>();
@@ -114,10 +221,19 @@ public class ModuleService {
 					.toArray(c -> new String[c])));
 		}
 		LoggingService.info("all modules resolved");
-
-		LoggingService.info("boot progress successful finished"); 
 	}
 
+	/**
+	 * This function resolve every class under 'typeInfos.type' in given Module.
+	 * 
+	 * @param module Module
+	 * 
+	 * @throws ModuleDependencyUnresolvableException => one or more dependencies are unresolved
+	 * @throws ModuleControllerClassException => the type-class isn't correct (0 or 1 constructor / not found)
+	 * @throws ModuleApiClassNotFoundException =>  the api-interface isn't corrent
+	 * @throws ModuleControllerDoesntImplementApiException => type-class doesn't implement api-interface!
+	 * @throws ModuleCanNotBootedException => Error while construction, something went horrible wrong, Fuck! -> Cancel&check System!!!
+	 */
 	private void resolveModule(Module module) throws ModuleDependencyUnresolvableException, ModuleControllerClassException, ModuleApiClassNotFoundException, ModuleControllerDoesntImplementApiException, ModuleCanNotBootedException {
 
 		HashMap<String, Class<?>> queue = new HashMap<>();
@@ -180,8 +296,13 @@ public class ModuleService {
 					if(this.resolvedDependencies.containsKey(dependency.getName())) {
 						unresolved.remove(dependency);
 					}
-					else if(this.resolvedDependencies.entrySet().stream().map(obj -> obj.getValue().getClass()).anyMatch(cls -> dependency.isAssignableFrom(cls))) {
-						unresolved.remove(dependency);
+					else {
+						try {
+							if(findInstanceOf(dependency) != null) {
+								unresolved.remove(dependency);	
+							}
+						} catch (DependencyNotResolvedException e) {
+						}
 					}
 				}
 
@@ -218,18 +339,11 @@ public class ModuleService {
 
 						ArrayList<Object> params = new ArrayList<>();
 						for (Class<?> cls : constructor.getParameterTypes()) {
-							// find class direct
-							if(this.resolvedDependencies.containsKey(cls.getName())) {
-								params.add(this.resolvedDependencies.get(cls.getName()));
+							// find direct or in Superclases&Co.
+							try {
+								params.add(findInstanceOf(cls));
 								continue;
-							}
-							
-							// find in Superclases&Co.
-							Optional<String> key = this.resolvedDependencies.entrySet().stream().filter(e -> cls.isAssignableFrom(e.getValue().getClass())).map(e -> e.getKey()).findFirst();
-							if(key.isPresent()) {
-								params.add(this.resolvedDependencies.get(key.get()));
-								continue;
-							}
+							} catch (DependencyNotResolvedException e) { }
 							
 							throw new ModuleDependencyUnresolvableException(cls.getName());
 						}
