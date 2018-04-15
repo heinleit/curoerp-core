@@ -1,11 +1,11 @@
 package de.curoerp.core.modularity.info;
 
-public class ControllerInfo {
-	private String controller;
+public class TypeInfo {
+	private String type;
 	private String api;
 
-	public String getController() {
-		return this.controller;
+	public String getType() {
+		return this.type;
 	}
 
 	public String getApi() {

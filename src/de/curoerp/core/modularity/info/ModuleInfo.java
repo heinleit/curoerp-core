@@ -4,9 +4,9 @@ public class ModuleInfo {
 	
 	private String name;
 	private int version;
-	private String[] dependencies;
-	private ControllerInfo[] controllerInfos;
-	private String[] locales;
+	private String[] dependencies = new String[0];
+	private TypeInfo[] typeInfos = new TypeInfo[0];
+	private String[] locales = new String[0];
 	
 	public String getName() {
 		return name;
@@ -20,8 +20,8 @@ public class ModuleInfo {
 		return dependencies;
 	}
 	
-	public ControllerInfo[] getControllerInfos() {
-		return controllerInfos;
+	public TypeInfo[] getTypeInfos() {
+		return typeInfos;
 	}
 	
 	public String[] getLocales() {

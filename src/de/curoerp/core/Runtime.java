@@ -3,6 +3,7 @@ package de.curoerp.core;
 import java.io.File;
 
 import de.curoerp.core.exception.RuntimeTroubleException;
+import de.curoerp.core.logging.LoggingService;
 import de.curoerp.core.modularity.ModuleService;
 
 public class Runtime {
@@ -15,7 +16,7 @@ public class Runtime {
 			service.boot();
 			
 		} catch (RuntimeTroubleException e) {
-			e.printStackTrace();
+			LoggingService.error(e);
 		}
 		
 	}

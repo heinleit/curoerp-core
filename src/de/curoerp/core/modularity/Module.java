@@ -11,6 +11,8 @@ import java.util.jar.JarFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import de.curoerp.core.modularity.exception.ModuleCanNotBeLoadedException;
+import de.curoerp.core.modularity.exception.ModuleFileAlreadyLoadedException;
 import de.curoerp.core.modularity.info.ModuleInfo;
 
 public class Module {
@@ -23,9 +25,9 @@ public class Module {
 		this.file = file;
 	}
 	
-	public String getModuleName() {
-		return this.file.getName();
-	}
+//	public String getModuleName() {
+//		return this.file.getName();
+//	}
 	
 	public ModuleInfo getInfo() {
 		return this.info;
