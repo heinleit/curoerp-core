@@ -14,6 +14,7 @@ Yes bitch!
 
 3. Fill your file with following content:
 
+```yaml
 	name: Unique Module Name
 	version: Integer-Version, for example: 0001 or 1
 	typeInfos:
@@ -27,6 +28,7 @@ Yes bitch!
 	locales:
 	 - de
 	 - de_DE..
+```
 
 4. Add CuroERP-Core_VERSION.jar as build-path
 
