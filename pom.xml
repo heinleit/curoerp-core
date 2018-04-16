@@ -65,15 +65,15 @@
                     <exclusions>
                     	<exclusion>
 						    <groupId>*apache*</groupId>
-						    <artefactId>*</artefactId>
+						    <artifactId>*</artifactId>
 					    </exclusion>
                     	<exclusion>
 						    <groupId>com.*</groupId>
-						    <artefactId>*</artefactId>
+						    <artifactId>*</artifactId>
 					    </exclusion>
                     	<exclusion>
 						    <groupId>commons-*</groupId>
-						    <artefactId>*</artefactId>
+						    <artifactId>*</artifactId>
 					    </exclusion>
 			        </exclusions>
                 </configuration>
