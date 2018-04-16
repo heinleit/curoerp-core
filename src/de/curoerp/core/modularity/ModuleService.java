@@ -38,7 +38,7 @@ public class ModuleService {
 	public ModuleService() {
 		//
 	}
-	
+
 	/**
 	 * find instance of type (String)
 	 * 
@@ -55,10 +55,10 @@ public class ModuleService {
 				throw new DependencyNotResolvedException();
 			}
 		}
-		
+
 		return this.resolvedDependencies.get(fqcn);
 	}
-	
+
 	/**
 	 * find instance of type (Class<T>)
 	 * 
@@ -80,7 +80,7 @@ public class ModuleService {
 
 			throw new DependencyNotResolvedException();
 		}
-		
+
 		return (T) this.resolvedDependencies.get(cls.getName());
 	}
 
@@ -131,7 +131,7 @@ public class ModuleService {
 
 		LoggingService.info("boot progress successful finished"); 
 	}
-	
+
 	/**
 	 * hang every module-jar in runtime
 	 * 
@@ -147,8 +147,8 @@ public class ModuleService {
 		}
 		LoggingService.info("jars successfully loaded in the runtime");
 	}
-	
-	
+
+
 	/**
 	 * check every dependency in all modules
 	 * 
@@ -163,7 +163,7 @@ public class ModuleService {
 		}
 		LoggingService.info("all dependencies found");
 	}
-	
+
 	/**
 	 * find first unresolved dependency for module
 	 * 
@@ -178,7 +178,7 @@ public class ModuleService {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Resolve every dependency
 	 * 
@@ -292,17 +292,11 @@ public class ModuleService {
 
 				// 7th: check external resolvements
 				for (Class<?> dependency : unresolved.toArray(new Class<?>[unresolved.size()])) {
-
-					if(this.resolvedDependencies.containsKey(dependency.getName())) {
-						unresolved.remove(dependency);
-					}
-					else {
-						try {
-							if(findInstanceOf(dependency) != null) {
-								unresolved.remove(dependency);	
-							}
-						} catch (DependencyNotResolvedException e) {
+					try {
+						if(findInstanceOf(dependency) != null) {
+							unresolved.remove(dependency);	
 						}
+					} catch (DependencyNotResolvedException e) {
 					}
 				}
 
@@ -322,7 +316,10 @@ public class ModuleService {
 		// Create Types and resolve dependencies finally - try-try-try... => never cancel!
 		while(queue.size() > 0) {
 
-			for (Entry<String, Class<?>> entry : queue.entrySet()) {
+			// Copy HashMap for Modifications (possible at types without api)
+			ArrayList<Entry<String, Class<?>>> entries = new ArrayList<>(queue.entrySet());
+
+			for (Entry<String, Class<?>> entry : entries) {
 				Object obj = null;
 
 				// create instance
@@ -344,7 +341,7 @@ public class ModuleService {
 								params.add(findInstanceOf(cls));
 								continue;
 							} catch (DependencyNotResolvedException e) { }
-							
+
 							throw new ModuleDependencyUnresolvableException(cls.getName());
 						}
 

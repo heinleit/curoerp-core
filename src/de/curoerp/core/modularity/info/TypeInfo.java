@@ -2,7 +2,7 @@ package de.curoerp.core.modularity.info;
 
 public class TypeInfo {
 	private String type;
-	private String api;
+	private String api = "";
 
 	public String getType() {
 		return this.type;
