@@ -1,4 +1,4 @@
-package de.curoerp.core.modularity.info;
+package de.curoerp.core.modularity.module;
 
 public class TypeInfo {
 	private String type;

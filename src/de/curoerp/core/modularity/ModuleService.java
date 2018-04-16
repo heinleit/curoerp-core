@@ -5,6 +5,7 @@ import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.MissingResourceException;
 
 import de.curoerp.core.exception.RuntimeTroubleException;
 import de.curoerp.core.logging.LoggingService;
@@ -18,6 +19,11 @@ import de.curoerp.core.modularity.exception.ModuleControllerDoesntImplementApiEx
 import de.curoerp.core.modularity.exception.ModuleDependencyUnresolvableException;
 import de.curoerp.core.modularity.exception.ModuleFileAlreadyLoadedException;
 import de.curoerp.core.modularity.exception.ModuleServiceAllreadyBootedException;
+import de.curoerp.core.modularity.language.ILocaleService;
+import de.curoerp.core.modularity.language.LocaleService;
+import de.curoerp.core.modularity.module.IBootModule;
+import de.curoerp.core.modularity.module.IModule;
+import de.curoerp.core.modularity.module.Module;
 
 /**
  * Central Module Service for internal..
@@ -115,7 +121,7 @@ public class ModuleService {
 
 		// Fetch&Load Jars in Runtime
 		this.hang();
-		LoggingService.info("jars successfully loaded in the runtime");
+		LoggingService.info("jars successfully heaped in runtime");
 
 		// Check module-dependencies
 		this.check();
@@ -189,7 +195,7 @@ public class ModuleService {
 			int unresolvedStart = unresolved.size();
 
 			for (Module module : unresolved.toArray(new Module[unresolved.size()])) {
-				LoggingService.info("try resolve module " + module.getInfo().getName() + "..");
+				LoggingService.breaker("try resolve " + module.getInfo().getName());
 
 				try {
 					this.resolver.setSpecialDependencies(this.buildSpecialDependencyMap(module));
@@ -203,6 +209,7 @@ public class ModuleService {
 					this.resolver.cleanSpecialDependencies();
 					unsucceeded.add(module.getInfo().getName());
 					LoggingService.warn("..Module " + module.getInfo().getName() + " can not resolved!");
+					LoggingService.warn(e);
 					
 				} catch (ModuleControllerClassException | ModuleApiClassNotFoundException
 						| ModuleControllerDoesntImplementApiException | ModuleCanNotBootedException e) {
@@ -234,6 +241,12 @@ public class ModuleService {
 		
 		// map builder
 		map.put(DependencyType.CurrentModule, (IModule)currentModule);
+		
+		try {
+			map.put(DependencyType.LocaleService, (ILocaleService) new LocaleService(currentModule));
+		} catch(MissingResourceException e) {
+			LoggingService.warn(e);
+		}
 		
 		return map;
 	}
