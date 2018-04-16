@@ -36,3 +36,13 @@ locales:
 5. Add depend-Modules as build-path
 
 Let's go!
+
+## Load Module
+
+Put your jar-file in your modules-path, defined in cli (`-s`).
+
+## Boot Module
+
+1. Be sure in **cmod.yml**-File is an bootClass defined, which is resolved by DlS!
+
+2. Start CuroERP-Core with cli-parameter `-b` and your module-name.
