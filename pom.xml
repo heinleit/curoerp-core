@@ -22,9 +22,9 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-					<descriptorRefs>
+					<!--<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
+					</descriptorRefs>-->
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
@@ -33,7 +33,7 @@
 					</archive>
 				</configuration>
 			</plugin>
-			<!--<plugin>
+			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.7.0</version>
 				<configuration>
@@ -41,7 +41,7 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-			<plugin>
+			<!--<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>3.1.0</version>
