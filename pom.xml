@@ -22,9 +22,9 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-					<!--<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>-->
+					<descriptorRefs>
+						<descriptorRef></descriptorRef>
+					</descriptorRefs>
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
