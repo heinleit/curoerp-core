@@ -22,7 +22,7 @@ import de.curoerp.core.modularity.info.ModuleInfo;
  * @author Hendrik Heinle
  * @since 15.04.2018
  */
-public class Module {
+public class Module implements IModule {
 	
 	private File file;
 	private boolean isLoaded = false;

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import de.curoerp.core.exception.RuntimeTroubleException;
 import de.curoerp.core.logging.LoggingService;
@@ -48,7 +49,7 @@ public class ModuleService {
 		}
 
 		try {
-			BootModule obj = (BootModule) this.resolver.findInstanceOf(module.getInfo().getBootClass());
+			IBootModule obj = (IBootModule) this.resolver.findInstanceOf(module.getInfo().getBootClass());
 			obj.boot();
 		} catch(ClassCastException e) {
 			throw new RuntimeTroubleException(e);
@@ -191,16 +192,26 @@ public class ModuleService {
 				LoggingService.info("try resolve module " + module.getInfo().getName() + "..");
 
 				try {
+					this.resolver.setSpecialDependencies(this.buildSpecialDependencyMap(module));
 					this.resolver.resolveTypes(module.getInfo().getTypeInfos());
+					this.resolver.cleanSpecialDependencies();
+					
 					unresolved.remove(module);
 					LoggingService.info("..resolved");
+					
 				} catch (ModuleDependencyUnresolvableException e) {
+					this.resolver.cleanSpecialDependencies();
 					unsucceeded.add(module.getInfo().getName());
 					LoggingService.warn("..Module " + module.getInfo().getName() + " can not resolved!");
+					
 				} catch (ModuleControllerClassException | ModuleApiClassNotFoundException
 						| ModuleControllerDoesntImplementApiException | ModuleCanNotBootedException e) {
+					
+					this.resolver.cleanSpecialDependencies();
 					throw new RuntimeTroubleException(e);
+				
 				}
+				
 			}
 
 			if(unresolvedStart == unresolved.size()) {
@@ -215,6 +226,16 @@ public class ModuleService {
 					.map(module -> module.getInfo().getName())
 					.toArray(c -> new String[c])));
 		}
+	}
+	
+	
+	private HashMap<DependencyType, Object> buildSpecialDependencyMap(Module currentModule) {
+		HashMap<DependencyType, Object> map = new HashMap<>();
+		
+		// map builder
+		map.put(DependencyType.CurrentModule, (IModule)currentModule);
+		
+		return map;
 	}
 
 }

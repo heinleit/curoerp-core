@@ -26,6 +26,7 @@ import de.curoerp.core.modularity.info.TypeInfo;
 public class DependencyService {
 
 	private HashMap<String, Object> availableDependencies;
+	private HashMap<DependencyType, Object> specialDependencies = new HashMap<>();
 
 	public DependencyService() {
 		this.availableDependencies = new HashMap<>();
@@ -65,6 +66,13 @@ public class DependencyService {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T findInstanceOf(Class<T> cls) throws DependencyNotResolvedException {
+		SpecialDependency annotation = cls.getAnnotation(SpecialDependency.class);
+		if(annotation != null) {
+			if(this.specialDependencies.containsKey(annotation.type())) {
+				return (T) this.specialDependencies.get(annotation.type());
+			}
+		}
+		
 		if(!this.availableDependencies.containsKey(cls.getName())) {
 			Optional<String> key = this.availableDependencies.entrySet().stream()
 					.filter(e -> cls.isAssignableFrom(e.getValue().getClass()))
@@ -134,6 +142,17 @@ public class DependencyService {
 	/*
 	 * Instantiation
 	 */
+	
+	public void setSpecialDependencies(HashMap<DependencyType, Object> map) {
+		this.cleanSpecialDependencies();
+		for (Entry<DependencyType, Object> entry : map.entrySet()) {
+			this.specialDependencies.put(entry.getKey(), entry.getValue());
+		}
+	}
+	
+	public void cleanSpecialDependencies() {
+		this.specialDependencies = new HashMap<>();
+	}
 
 	private Object createInstance(Class<?> type) throws ModuleCanNotBootedException {
 		Object obj = null;

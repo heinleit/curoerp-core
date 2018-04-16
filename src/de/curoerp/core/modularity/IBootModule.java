@@ -1,5 +1,5 @@
 package de.curoerp.core.modularity;
 
-public interface BootModule {
+public interface IBootModule {
 	public void boot();
 }
