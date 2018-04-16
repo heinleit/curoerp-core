@@ -7,6 +7,7 @@ public class ModuleInfo {
 	private String[] dependencies = new String[0];
 	private TypeInfo[] typeInfos = new TypeInfo[0];
 	private String[] locales = new String[0];
+	private String bootClass;
 	
 	public String getName() {
 		return name;
@@ -26,6 +27,10 @@ public class ModuleInfo {
 	
 	public String[] getLocales() {
 		return locales;
+	}
+	
+	public String getBootClass() {
+		return bootClass;
 	}
 	
 }

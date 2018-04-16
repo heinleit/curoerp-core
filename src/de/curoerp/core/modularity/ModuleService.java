@@ -39,6 +39,27 @@ public class ModuleService {
 		//
 	}
 
+	
+	public void bootModule(String name) throws DependencyNotResolvedException {
+		// find module
+		Module module = Arrays.stream(this.modules).filter(m -> m.getInfo().getName().equals(name)).findFirst().orElse(null);
+		
+		if(module == null) {
+			throw new RuntimeTroubleException(new Exception("Module '" + name + "' not loaded!"));
+		}
+		
+		if(module.getInfo().getBootClass() == null) {
+			throw new RuntimeTroubleException(new Exception("Module " + module.getInfo().getName() + " dont know any boot-class!"));
+		}
+		
+		try {
+			BootModule obj = (BootModule) this.findInstanceOf(module.getInfo().getBootClass());
+			obj.boot();
+		} catch(ClassCastException e) {
+			throw new RuntimeTroubleException(e);
+		}
+	}
+
 	/**
 	 * find instance of type (String)
 	 * 

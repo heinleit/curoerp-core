@@ -22,6 +22,7 @@ typeInfos:
    api: API (Interface of TestType1)
  - type: TestType2
    api: API (Interface of TestType2)
+bootClass: Class, should be a type in typeInfos an implements de.curoerp.core.modularity.BootModule
 dependencies:
  - Module1
  - Module2..
