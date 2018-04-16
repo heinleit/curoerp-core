@@ -20,8 +20,8 @@
 					</execution>
 				</executions>
 				<configuration>
-					<source>1.9</source>
-					<target>1.9</target>
+					<source>1.8</source>
+					<target>1.8</target>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
@@ -39,10 +39,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.7.0</version>
 				<configuration>
-					<source>1.9</source>
-					<target>1.9</target>
-					<fork>true</fork>
-					<executable>/usr/lib/jvm/java-1.9.0-openjdk-amd64/bin/javac</executable>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -64,6 +62,9 @@
                         <lib>${java.home}/lib/rt.jar</lib>
                         <lib>${java.home}/lib/jsse.jar</lib>
                     </libs>
+                    <exclusions>
+			            <exclusion>META-INF.**</exclusion>
+			        </exclusions>
                 </configuration>
             </plugin>
 			<!--<plugin>
