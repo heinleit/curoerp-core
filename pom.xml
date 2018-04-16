@@ -23,7 +23,7 @@
 					<source>1.8</source>
 					<target>1.8</target>
 					<descriptorRefs>
-						<descriptorRef></descriptorRef>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
 					<archive>
 						<manifest>
@@ -31,6 +31,8 @@
 							<mainClass>de.curoerp.core.Runtime</mainClass>
 						</manifest>
 					</archive>
+					<finalName>${jar.finalName}</finalName>
+					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 			</plugin>
 			<plugin>
