@@ -4,14 +4,6 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.curoerp.core</groupId>
 	<artifactId>CuroERP-Core</artifactId>
-	<configuration>
-        	<archive>
-        		<manifest>
-        			<addClasspath>true</addClasspath>
-        			<mainClass>de.curoerp.core.Runtime</mainClass>
-           		</manifest>
-        	</archive>
-        </configuration>
 	<version>0.0.1</version>
 	<name>Curo Core</name>
 	<build>
@@ -24,6 +16,12 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>de.curoerp.core.Runtime</mainClass>
+						</manifest>
+					</archive>
 				</configuration>
 			</plugin>
 		</plugins>
