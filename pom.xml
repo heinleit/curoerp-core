@@ -41,6 +41,8 @@
 				<configuration>
 					<source>1.9</source>
 					<target>1.9</target>
+					<fork>true</fork>
+					<executable>/usr/lib/jvm/java-1.9.0-openjdk-amd64/bin/javac</executable>
 				</configuration>
 			</plugin>
 			<plugin>
