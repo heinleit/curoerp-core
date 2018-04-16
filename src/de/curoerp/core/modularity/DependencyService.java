@@ -8,13 +8,14 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.Map.Entry;
 
+import de.curoerp.core.logging.LoggingService;
 import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
 import de.curoerp.core.modularity.exception.ModuleApiClassNotFoundException;
 import de.curoerp.core.modularity.exception.ModuleCanNotBootedException;
 import de.curoerp.core.modularity.exception.ModuleControllerClassException;
 import de.curoerp.core.modularity.exception.ModuleControllerDoesntImplementApiException;
 import de.curoerp.core.modularity.exception.ModuleDependencyUnresolvableException;
-import de.curoerp.core.modularity.info.TypeInfo;
+import de.curoerp.core.modularity.module.TypeInfo;
 
 /**
  * Dependency Resolver
@@ -26,6 +27,7 @@ import de.curoerp.core.modularity.info.TypeInfo;
 public class DependencyService {
 
 	private HashMap<String, Object> availableDependencies;
+	private HashMap<DependencyType, Object> specialDependencies = new HashMap<>();
 
 	public DependencyService() {
 		this.availableDependencies = new HashMap<>();
@@ -65,6 +67,13 @@ public class DependencyService {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T findInstanceOf(Class<T> cls) throws DependencyNotResolvedException {
+		SpecialDependency annotation = cls.getAnnotation(SpecialDependency.class);
+		if(annotation != null) {
+			if(this.specialDependencies.containsKey(annotation.type())) {
+				return (T) this.specialDependencies.get(annotation.type());
+			}
+		}
+
 		if(!this.availableDependencies.containsKey(cls.getName())) {
 			Optional<String> key = this.availableDependencies.entrySet().stream()
 					.filter(e -> cls.isAssignableFrom(e.getValue().getClass()))
@@ -95,20 +104,28 @@ public class DependencyService {
 
 		HashMap<String, Class<?>> queue = new HashMap<>();
 
+		LoggingService.info("resolve types");
+
+		LoggingService.info("dry-run");
 		// check types
 		for (TypeInfo type : typeInfos) {
 			// find type
 			Class<?> typeClass = this.resolveType(type.getType());
+			LoggingService.info("Class '" + type.getType() + "' found");
 
 			// check type
 			this.checkResolvement(typeClass, type.getApi(), Arrays.stream(typeInfos).filter(type_ -> type_ != type).toArray(c -> new TypeInfo[c]));
+			LoggingService.info("# validated");
 
 			// put type in resolvable Map
 			queue.put(typeClass.getName(), typeClass);
+			LoggingService.info("# putted");
 		}
+		LoggingService.info("dry-run successful");
 
 		// ### Now we can say that there is no lack of dependence anymore. 
 
+		LoggingService.info("final run");
 		// Create Types and resolve dependencies finally - try-try-try... => never cancel!
 		while(queue.size() > 0) {
 
@@ -134,6 +151,17 @@ public class DependencyService {
 	/*
 	 * Instantiation
 	 */
+
+	public void setSpecialDependencies(HashMap<DependencyType, Object> map) {
+		this.cleanSpecialDependencies();
+		for (Entry<DependencyType, Object> entry : map.entrySet()) {
+			this.specialDependencies.put(entry.getKey(), entry.getValue());
+		}
+	}
+
+	public void cleanSpecialDependencies() {
+		this.specialDependencies = new HashMap<>();
+	}
 
 	private Object createInstance(Class<?> type) throws ModuleCanNotBootedException {
 		Object obj = null;
@@ -179,17 +207,21 @@ public class DependencyService {
 	/*
 	 * Check
 	 */
-	
-	private void checkResolvement(Class<?> typeClass, String api, TypeInfo[] internal) throws ModuleDependencyUnresolvableException, ModuleControllerClassException, ModuleControllerDoesntImplementApiException, ModuleApiClassNotFoundException {
 
+	private void checkResolvement(Class<?> typeClass, String api, TypeInfo[] internal) throws ModuleDependencyUnresolvableException, ModuleControllerClassException, ModuleControllerDoesntImplementApiException, ModuleApiClassNotFoundException {
+		LoggingService.info("# check resolvements");
 		// 1st: check API class
 		this.checkApi(api, typeClass);
+		LoggingService.info("## API '" + api + "' found/ignored");
 
 		// 2nd: find dependencies
 		Class<?>[] dependencies = this.findDependencies(typeClass);
+		LoggingService.info("## dependencies found: " + String.join(", ", Arrays.stream(dependencies).map(d -> d.getSimpleName()).toArray(c -> new String[c])));
 
 		// 3rd: any dependency unresolved?
 		Class<?>[] unresolved = this.findUnresolvedDependencies(dependencies, internal);
+		LoggingService.info("## unresolved dependencies: " + String.join(", ", Arrays.stream(unresolved).map(d -> d.getSimpleName()).toArray(c -> new String[c])));
+
 
 		if(unresolved.length > 0) {
 			throw new ModuleDependencyUnresolvableException(String.join(", ", Arrays.stream(unresolved).map(c -> c.getName()).toArray(c -> new String[c])));

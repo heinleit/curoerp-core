@@ -20,7 +20,7 @@ public class LoggingService {
 	}
 
 	public static void error(Exception exc) {
-		boot().logger.error(exc);
+		boot().logger.error(exc.getMessage());
 	}
 
 	public static void warn(String log) {
@@ -36,7 +36,11 @@ public class LoggingService {
 	}
 
 	public static void info(Exception exc) {
-		boot().logger.info(exc);
+		boot().logger.info(exc.getMessage());
+	}
+	
+	public static void breaker(String title) {
+		System.out.println("########## " + title.trim().toUpperCase() + " ##########");
 	}
 
 

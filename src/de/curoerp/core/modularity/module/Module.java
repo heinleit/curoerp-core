@@ -1,4 +1,4 @@
-package de.curoerp.core.modularity;
+package de.curoerp.core.modularity.module;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import de.curoerp.core.modularity.exception.ModuleCanNotBeLoadedException;
 import de.curoerp.core.modularity.exception.ModuleFileAlreadyLoadedException;
-import de.curoerp.core.modularity.info.ModuleInfo;
 
 /**
  * Module-Model for..
@@ -22,7 +21,7 @@ import de.curoerp.core.modularity.info.ModuleInfo;
  * @author Hendrik Heinle
  * @since 15.04.2018
  */
-public class Module {
+public class Module implements IModule {
 	
 	private File file;
 	private boolean isLoaded = false;
@@ -54,7 +53,7 @@ public class Module {
 	}
 	
 	/**
-	 * This 
+	 * 
 	 * @throws ModuleFileAlreadyLoadedException 
 	 * @throws ModuleCanNotBeLoadedException 
 	 */

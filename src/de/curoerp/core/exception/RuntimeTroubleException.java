@@ -19,12 +19,14 @@ public class RuntimeTroubleException extends RuntimeException {
 		StringBuilder message = new StringBuilder();
 		
 		message.append(this.getExceptionName());
-		
 		message.append(System.lineSeparator());
+		
+		message.append(this.exc.getMessage());
 		message.append(System.lineSeparator());
 		
 		Arrays.stream(this.exc.getStackTrace()).forEach(item -> {
 			message.append(item.toString());
+			message.append(System.lineSeparator());
 		});
 		
 		return message.toString();
