@@ -63,7 +63,18 @@
                         <lib>${java.home}/lib/jsse.jar</lib>
                     </libs>
                     <exclusions>
-			            <exclusion>META-INF.**</exclusion>
+                    	<exclusion>
+						    <groupId>*apache*</groupId>
+						    <artefactId>*</artefactId>
+					    </exclusion>
+                    	<exclusion>
+						    <groupId>com.*</groupId>
+						    <artefactId>*</artefactId>
+					    </exclusion>
+                    	<exclusion>
+						    <groupId>commons-*</groupId>
+						    <artefactId>*</artefactId>
+					    </exclusion>
 			        </exclusions>
                 </configuration>
             </plugin>
