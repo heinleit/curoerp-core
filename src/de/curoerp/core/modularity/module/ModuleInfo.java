@@ -6,7 +6,6 @@ public class ModuleInfo {
 	private int version;
 	private String[] dependencies = new String[0];
 	private TypeInfo[] typeInfos = new TypeInfo[0];
-	private String[] locales = new String[0];
 	private String bootClass;
 	
 	public String getName() {
@@ -23,10 +22,6 @@ public class ModuleInfo {
 	
 	public TypeInfo[] getTypeInfos() {
 		return typeInfos;
-	}
-	
-	public String[] getLocales() {
-		return locales;
 	}
 	
 	public String getBootClass() {
