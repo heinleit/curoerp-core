@@ -2,13 +2,8 @@ package de.curoerp.core.modularity;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map.Entry;
-import java.util.Optional;
 
 import de.curoerp.core.exception.RuntimeTroubleException;
 import de.curoerp.core.logging.LoggingService;
@@ -21,7 +16,7 @@ import de.curoerp.core.modularity.exception.ModuleControllerClassException;
 import de.curoerp.core.modularity.exception.ModuleControllerDoesntImplementApiException;
 import de.curoerp.core.modularity.exception.ModuleDependencyUnresolvableException;
 import de.curoerp.core.modularity.exception.ModuleFileAlreadyLoadedException;
-import de.curoerp.core.modularity.info.TypeInfo;
+import de.curoerp.core.modularity.exception.ModuleServiceAllreadyBootedException;
 
 /**
  * Central Module Service for internal..
@@ -33,27 +28,27 @@ import de.curoerp.core.modularity.info.TypeInfo;
 public class ModuleService {
 
 	private Module[] modules = new Module[0];
-	private HashMap<String, Object> resolvedDependencies;
+	private DependencyService resolver;
+	private boolean booted = false;
 
-	public ModuleService() {
-		//
+	public ModuleService(DependencyService resolver) {
+		this.resolver = resolver;
 	}
 
-	
-	public void bootModule(String name) throws DependencyNotResolvedException {
-		// find module
-		Module module = Arrays.stream(this.modules).filter(m -> m.getInfo().getName().equals(name)).findFirst().orElse(null);
-		
-		if(module == null) {
-			throw new RuntimeTroubleException(new Exception("Module '" + name + "' not loaded!"));
-		}
-		
+	/**
+	 * Boot a bootable Module
+	 * 
+	 * @param module Module
+	 * 
+	 * @throws DependencyNotResolvedException
+	 */
+	public void runModule(Module module) throws DependencyNotResolvedException {
 		if(module.getInfo().getBootClass() == null) {
 			throw new RuntimeTroubleException(new Exception("Module " + module.getInfo().getName() + " dont know any boot-class!"));
 		}
-		
+
 		try {
-			BootModule obj = (BootModule) this.findInstanceOf(module.getInfo().getBootClass());
+			BootModule obj = (BootModule) this.resolver.findInstanceOf(module.getInfo().getBootClass());
 			obj.boot();
 		} catch(ClassCastException e) {
 			throw new RuntimeTroubleException(e);
@@ -61,48 +56,20 @@ public class ModuleService {
 	}
 
 	/**
-	 * find instance of type (String)
+	 * Boot a bootable Module by Name
 	 * 
-	 * @param fqcn {@link String} full qualified class name
-	 * @return T instance of fqcn
-	 * 
-	 * @throws DependencyNotResolvedException
-	 */
-	public Object findInstanceOf(String fqcn) throws DependencyNotResolvedException {
-		if(!this.resolvedDependencies.containsKey(fqcn)) {
-			try {
-				return findInstanceOf(Class.forName(fqcn));
-			} catch (ClassNotFoundException e) {
-				throw new DependencyNotResolvedException();
-			}
-		}
-
-		return this.resolvedDependencies.get(fqcn);
-	}
-
-	/**
-	 * find instance of type (Class<T>)
-	 * 
-	 * @param cls Class<T>
-	 * @return T instance of cls
+	 * @param name String
 	 * 
 	 * @throws DependencyNotResolvedException
 	 */
-	@SuppressWarnings("unchecked")
-	public <T> T findInstanceOf(Class<T> cls) throws DependencyNotResolvedException {
-		if(!this.resolvedDependencies.containsKey(cls.getName())) {
-			Optional<String> key = this.resolvedDependencies.entrySet().stream()
-					.filter(e -> cls.isAssignableFrom(e.getValue().getClass()))
-					.map(e -> e.getKey())
-					.findFirst();
-			if(key.isPresent()) {
-				return (T) this.resolvedDependencies.get(key.get());
-			}
+	public void runModule(String name) throws DependencyNotResolvedException {
+		Module module = Arrays.stream(this.modules).filter(m -> m.getInfo().getName().equals(name)).findFirst().orElse(null);
 
-			throw new DependencyNotResolvedException();
+		if(module == null) {
+			throw new RuntimeTroubleException(new Exception("Module '" + name + "' not loaded!"));
 		}
-
-		return (T) this.resolvedDependencies.get(cls.getName());
+		
+		this.runModule(module);
 	}
 
 	/**
@@ -112,6 +79,10 @@ public class ModuleService {
 	 * @param directory {@link File}
 	 */
 	public void loadModules(File directory) {
+		if(this.booted) {
+			throw new RuntimeTroubleException(new ModuleServiceAllreadyBootedException());
+		}
+		
 		if(!directory.exists() || !directory.isDirectory()) {
 			throw new RuntimeTroubleException(new ModuleBasePathNotExistsException());
 		}
@@ -143,13 +114,18 @@ public class ModuleService {
 
 		// Fetch&Load Jars in Runtime
 		this.hang();
+		LoggingService.info("jars successfully loaded in the runtime");
 
-		// Check dependencies
+		// Check module-dependencies
 		this.check();
+		LoggingService.info("all module-dependencies found");
 
 		// Resolve dependencies
 		this.resolve();
+		LoggingService.info("all modules resolved");
 
+		// finish
+		this.booted = true;
 		LoggingService.info("boot progress successful finished"); 
 	}
 
@@ -166,7 +142,6 @@ public class ModuleService {
 				throw new RuntimeTroubleException(e);
 			}
 		}
-		LoggingService.info("jars successfully loaded in the runtime");
 	}
 
 
@@ -182,7 +157,6 @@ public class ModuleService {
 				throw new RuntimeTroubleException(new ModuleDependencyUnresolvableException(dependency));
 			}
 		}
-		LoggingService.info("all dependencies found");
 	}
 
 	/**
@@ -206,9 +180,9 @@ public class ModuleService {
 	 * @throws RuntimeTroubleException => something went wrong :/ Please check code or Modules
 	 */
 	private void resolve() {
-		this.resolvedDependencies = new HashMap<>();
 		ArrayList<Module> unresolved = new ArrayList<Module>(Arrays.asList(this.modules));
 		ArrayList<String> unsucceeded = new ArrayList<>();
+
 
 		while(unresolved.size() > 0) {
 			int unresolvedStart = unresolved.size();
@@ -217,7 +191,7 @@ public class ModuleService {
 				LoggingService.info("try resolve module " + module.getInfo().getName() + "..");
 
 				try {
-					this.resolveModule(module);
+					this.resolver.resolveTypes(module.getInfo().getTypeInfos());
 					unresolved.remove(module);
 					LoggingService.info("..resolved");
 				} catch (ModuleDependencyUnresolvableException e) {
@@ -241,154 +215,6 @@ public class ModuleService {
 					.map(module -> module.getInfo().getName())
 					.toArray(c -> new String[c])));
 		}
-		LoggingService.info("all modules resolved");
-	}
-
-	/**
-	 * This function resolve every class under 'typeInfos.type' in given Module.
-	 * 
-	 * @param module Module
-	 * 
-	 * @throws ModuleDependencyUnresolvableException => one or more dependencies are unresolved
-	 * @throws ModuleControllerClassException => the type-class isn't correct (0 or 1 constructor / not found)
-	 * @throws ModuleApiClassNotFoundException =>  the api-interface isn't corrent
-	 * @throws ModuleControllerDoesntImplementApiException => type-class doesn't implement api-interface!
-	 * @throws ModuleCanNotBootedException => Error while construction, something went horrible wrong, Fuck! -> Cancel&check System!!!
-	 */
-	private void resolveModule(Module module) throws ModuleDependencyUnresolvableException, ModuleControllerClassException, ModuleApiClassNotFoundException, ModuleControllerDoesntImplementApiException, ModuleCanNotBootedException {
-
-		HashMap<String, Class<?>> queue = new HashMap<>();
-
-		// check resolvement in types
-		for (TypeInfo type : module.getInfo().getTypeInfos()) {
-			Class<?> typeClass = null;
-			ArrayList<Class<?>> unresolved = new ArrayList<>();
-
-			// 1st: check type-class
-			try {
-				typeClass = Class.forName(type.getType());
-			} catch (ClassNotFoundException e) {
-				throw new ModuleControllerClassException();
-			}
-
-			// 2nd: check constructor.length 1 or 0
-			if(typeClass.getConstructors().length > 1) {
-				throw new ModuleControllerClassException();
-			}
-
-			// 3rd: check api (api is optional)
-			if(type.getApi().trim().length() > 0) {
-
-				// search api-class
-				try {
-					final Class<?> apiClass = Class.forName(type.getApi());
-
-					// Controller realy implements api?
-					if(!Arrays.asList(typeClass.getInterfaces()).stream().anyMatch(impl -> impl.isAssignableFrom(apiClass))) {
-						throw new ModuleControllerDoesntImplementApiException();
-					}
-				} catch (ClassNotFoundException e) {
-					throw new ModuleApiClassNotFoundException();
-				}
-			}
-
-			// 4th: fetch dependencies
-			for (Constructor<?> constructor : typeClass.getConstructors()) {
-				for (Class<?> parameter : constructor.getParameterTypes()) {
-					if(!unresolved.contains(parameter)) {
-						unresolved.add(parameter);
-					}
-				}
-			}
-
-			// 5th: any dependencies?
-			if(unresolved.size() > 0) {
-				// dependencies resolved?
-
-				// 6th: check internal resolvements
-				for (TypeInfo other : module.getInfo().getTypeInfos()) {
-					unresolved.remove(unresolved.stream().filter(c -> c.getName().equals(other.getApi())).findFirst().orElse(null));
-					unresolved.remove(unresolved.stream().filter(c -> c.getName().equals(other.getType())).findFirst().orElse(null));
-				}
-
-				// 7th: check external resolvements
-				for (Class<?> dependency : unresolved.toArray(new Class<?>[unresolved.size()])) {
-					try {
-						if(findInstanceOf(dependency) != null) {
-							unresolved.remove(dependency);	
-						}
-					} catch (DependencyNotResolvedException e) {
-					}
-				}
-
-				// 8th: Check, if all Dependencies are resolved
-				if(unresolved.size() > 0) {
-					throw new ModuleDependencyUnresolvableException(String.join(", ", unresolved.stream().map(c -> c.getName()).toArray(c -> new String[c])));
-				}
-			}
-
-			// Last, but not least
-			// 9th: put type and api in resolvable Map
-			queue.put(typeClass.getName(), typeClass);
-		}
-
-		// ### Now we can say that there is no lack of dependence anymore. 
-
-		// Create Types and resolve dependencies finally - try-try-try... => never cancel!
-		while(queue.size() > 0) {
-
-			// Copy HashMap for Modifications (possible at types without api)
-			ArrayList<Entry<String, Class<?>>> entries = new ArrayList<>(queue.entrySet());
-
-			for (Entry<String, Class<?>> entry : entries) {
-				Object obj = null;
-
-				// create instance
-				try {
-					switch (entry.getValue().getConstructors().length) {
-					// no constructor
-					case 0:
-						obj = entry.getValue().newInstance();
-						break;
-
-						// only one constructor
-					case 1:
-						Constructor<?> constructor = entry.getValue().getConstructors()[0];
-
-						ArrayList<Object> params = new ArrayList<>();
-						for (Class<?> cls : constructor.getParameterTypes()) {
-							// find direct or in Superclases&Co.
-							try {
-								params.add(findInstanceOf(cls));
-								continue;
-							} catch (DependencyNotResolvedException e) { }
-
-							throw new ModuleDependencyUnresolvableException(cls.getName());
-						}
-
-						obj = constructor.newInstance(params.toArray(new Object[params.size()]));
-						break;
-					}
-				} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					e.printStackTrace();
-
-					// error => exit Runtime
-					throw new ModuleCanNotBootedException(new String[] {
-							module.getInfo().getName()
-					});
-				}
-				catch(ModuleDependencyUnresolvableException e) {
-					// probably internal dependencies
-					continue;
-				}
-
-				// Nullpointer is no option, it's an problem!
-				this.resolvedDependencies.put(entry.getValue().getName(), obj);
-				queue.remove(entry.getKey());
-			}
-
-		}
-
 	}
 
 }

@@ -46,7 +46,7 @@ public class Runtime {
 		
 		// finally: boot
 		try {
-			modules.bootModule(cmd.getOptionValue("b"));
+			modules.runModule(cmd.getOptionValue("b"));
 		} catch (RuntimeTroubleException | DependencyNotResolvedException e) {
 			LoggingService.error(e);
 			return;
