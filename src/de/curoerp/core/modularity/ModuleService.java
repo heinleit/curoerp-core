@@ -195,7 +195,7 @@ public class ModuleService {
 			int unresolvedStart = unresolved.size();
 
 			for (Module module : unresolved.toArray(new Module[unresolved.size()])) {
-				LoggingService.breaker("try resolve " + module.getInfo().getName());
+				LoggingService.info("try resolve " + module.getInfo().getName());
 
 				try {
 					this.resolver.setSpecialDependencies(this.buildSpecialDependencyMap(module));
