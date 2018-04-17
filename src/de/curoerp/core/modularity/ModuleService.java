@@ -121,7 +121,7 @@ public class ModuleService {
 
 		// Fetch&Load Jars in Runtime
 		this.hang();
-		LoggingService.info("jars successfully heaped in runtime");
+		LoggingService.info("module-jars successfully heaped in runtime: " + String.join(", ", Arrays.stream(this.modules).map(m -> m.getInfo().getName()).toArray(c -> new String[c])));
 
 		// Check module-dependencies
 		this.check();

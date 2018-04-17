@@ -67,7 +67,7 @@ public class Module implements IModule {
 			URLClassLoader classLoader = (URLClassLoader)ClassLoader.getSystemClassLoader();
 			method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
 			method.setAccessible(true);
-			method.invoke(classLoader, new URL("file://" + this.file));
+			method.invoke(classLoader, this.file.toURI().toURL());
 		}
 		catch(Exception e) {
 			e.printStackTrace();
