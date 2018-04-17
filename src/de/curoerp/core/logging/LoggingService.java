@@ -1,6 +1,9 @@
 package de.curoerp.core.logging;
 
 
+import java.io.File;
+import java.net.MalformedURLException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,6 +12,11 @@ public class LoggingService {
 	private Logger logger;
 
 	public LoggingService() {
+		try {
+			System.setProperty("log4j.configurationFile", new File("resources", "log4j.xml").toURI().toURL().toString());
+		} catch (MalformedURLException e) {
+			LoggingService.error(e);
+		}
 		this.logger = LogManager.getLogger("CuroLogger");//"curoerp-core");
 	}
 
@@ -40,7 +48,7 @@ public class LoggingService {
 	}
 	
 	public static void breaker(String title) {
-		System.out.println("########## " + title.trim().toUpperCase() + " ##########");
+		LoggingService.info("########## " + title.trim().toUpperCase() + " ##########");
 	}
 
 
