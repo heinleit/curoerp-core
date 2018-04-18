@@ -27,6 +27,7 @@ version: Integer-Version, for example: 0001 or 1
  - Module1
  - Module2..
 ```
+**Do not write (*)! It only mean the property is optional ;)**
 
 4. Add CuroERP-Core_VERSION.jar as build-path
 
