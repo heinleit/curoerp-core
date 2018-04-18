@@ -213,12 +213,15 @@ public class DependencyService {
 		// 1st: check API class
 		this.checkApi(api, typeClass);
 		LoggingService.info("## API '" + api + "' found/ignored");
-
-		// 2nd: find dependencies
+		
+		// 2nd: check constructors (max = 1)
+		// TODO
+		
+		// 3nd: find dependencies
 		Class<?>[] dependencies = this.findDependencies(typeClass);
 		LoggingService.info("## dependencies found: " + String.join(", ", Arrays.stream(dependencies).map(d -> d.getSimpleName()).toArray(c -> new String[c])));
 
-		// 3rd: any dependency unresolved?
+		// 4rd: any dependency unresolved?
 		Class<?>[] unresolved = this.findUnresolvedDependencies(dependencies, internal);
 		LoggingService.info("## unresolved dependencies: " + String.join(", ", Arrays.stream(unresolved).map(d -> d.getSimpleName()).toArray(c -> new String[c])));
 
