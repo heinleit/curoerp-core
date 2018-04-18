@@ -48,7 +48,7 @@ public class Module implements IModule {
 			
 			this.info = info;
 		} catch (IOException e) {
-			throw new ModuleCanNotBeLoadedException();
+			throw new ModuleCanNotBeLoadedException(e.getMessage());
 		}
 	}
 	
@@ -70,8 +70,7 @@ public class Module implements IModule {
 			method.invoke(classLoader, this.file.toURI().toURL());
 		}
 		catch(Exception e) {
-			e.printStackTrace();
-			throw new ModuleCanNotBeLoadedException();
+			throw new ModuleCanNotBeLoadedException(e.getMessage());
 		}
 		finally {
 			if(method != null) {
