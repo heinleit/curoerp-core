@@ -240,12 +240,12 @@ public class DependencyService {
 		try {
 			type = Class.forName(fqn);
 		} catch (ClassNotFoundException e) {
-			throw new ModuleControllerClassException();
+			throw new ModuleControllerClassException(fqn);
 		}
 
 		// check constructor.length 1 or 0
 		if(type.getConstructors().length > 1) {
-			throw new ModuleControllerClassException();
+			throw new ModuleControllerClassException(fqn);
 		}
 
 		return type;
