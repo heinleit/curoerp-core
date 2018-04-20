@@ -50,13 +50,23 @@ public class Module implements IModule {
 	 */
 	
 	/**
-	 * Get Name
+	 * Get System-Name
 	 * 
 	 * @return {@link String}
 	 */
-	public String getName() {
+	public String getSystemName() {
 		if(!this.isLoaded) return null;
-		return this.info.name;
+		return Module.parseSystemName(this.info.name);
+	}
+	
+	/**
+	 * parse module name for system
+	 * 
+	 * @param name {@link String}
+	 * @return {@link String}
+	 */
+	public static String parseSystemName(String name) {
+		return name.toLowerCase().trim().replace(' ', '_');
 	}
 	
 	/**
@@ -66,7 +76,7 @@ public class Module implements IModule {
 	 */
 	public String getDisplayName() {
 		if(!this.isLoaded) return null;
-		return this.info.name + " (" + this.info.version + ")";
+		return this.info.name + " (" + this.version + ")";
 	}
 	
 	/**
