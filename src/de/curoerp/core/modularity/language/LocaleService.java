@@ -11,7 +11,7 @@ public class LocaleService implements ILocaleService {
 	private ResourceBundle bundle;
 
 	public LocaleService(Module module) {
-		this.localeName = module.getName().trim().replace(' ', '_');
+		this.localeName = module.getSystemName();
 		
 		this.ini();
 	}
