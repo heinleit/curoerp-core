@@ -73,4 +73,13 @@ public class VersionInfo {
 	}
 	
 	
+	/*
+	 * overwriting
+	 */
+	
+	@Override
+	public String toString() {
+		return this.getVersionName();
+	}
+	
 }
