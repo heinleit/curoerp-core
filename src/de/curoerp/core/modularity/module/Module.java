@@ -94,6 +94,7 @@ public class Module implements IModule {
 			else if(name.length() == 0) {
 				throw new ModuleNameInvalidException("module name must contains 1 or more characters!");
 			}
+			this.name = name;
 
 			// DependencyInfo (z.B. Module:>10)
 			this.dependencies = DependencyService.parseDependencies(info.getDependencies());
