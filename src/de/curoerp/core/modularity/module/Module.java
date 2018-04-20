@@ -13,6 +13,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import de.curoerp.core.modularity.exception.ModuleCanNotBeLoadedException;
 import de.curoerp.core.modularity.exception.ModuleFileAlreadyLoadedException;
+import de.curoerp.core.modularity.exception.ModuleVersionStringInvalidException;
+import de.curoerp.core.modularity.versioning.VersionInfo;
 
 /**
  * Module-Model for..
@@ -26,7 +28,7 @@ public class Module implements IModule {
 	private File file;
 	private boolean isLoaded = false;
 	private ModuleInfo info;
-	
+	private VersionInfo version;
 	
 	/**
 	 * Construct Module by Jar-File
@@ -72,9 +74,9 @@ public class Module implements IModule {
 	 * 
 	 * @return {@link Integer}
 	 */
-	public int getVersion() {
-		if(!this.isLoaded) return -1;
-		return this.info.version;
+	public VersionInfo getVersion() {
+		if(!this.isLoaded) return null;
+		return this.version;
 	}
 	
 	/**
@@ -133,8 +135,12 @@ public class Module implements IModule {
 			stream.close();
 			jarFile.close();
 			
+			// VersionInfo
+			this.version = new VersionInfo(info.version);
+			
+			// ModuleInfo
 			this.info = info;
-		} catch (IOException e) {
+		} catch (IOException | ModuleVersionStringInvalidException e) {
 			throw new ModuleCanNotBeLoadedException(e.getMessage());
 		}
 	}
