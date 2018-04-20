@@ -3,15 +3,12 @@ package de.curoerp.core.modularity.module;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.jar.JarFile;
-
-import javax.naming.LimitExceededException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -24,7 +21,6 @@ import de.curoerp.core.modularity.exception.ModuleFileAlreadyLoadedException;
 import de.curoerp.core.modularity.exception.ModuleVersionStringInvalidException;
 import de.curoerp.core.modularity.versioning.VersionExpression;
 import de.curoerp.core.modularity.versioning.VersionInfo;
-import de.curoerp.core.modularity.versioning.VersionService;
 
 /**
  * Module-Model for..
@@ -103,11 +99,10 @@ public class Module implements IModule {
 	/**
 	 * Get Dependencies
 	 * 
-	 * @return {@link String}[]
+	 * @return {@link DependencyInfo}[]
 	 */
-	public String[] getDependencies() {
-		if(!this.isLoaded) return null;
-		return this.info.dependencies;
+	public DependencyInfo[] getDependencies() {
+		return this.dependencies;
 	}
 
 	/**
@@ -186,11 +181,11 @@ public class Module implements IModule {
 				for (String sLimitation : splittedDependency[1].split(",")) {
 					DependencyLimitation limitation = Arrays.stream(VersionExpression.values())
 							.filter(expression -> sLimitation.startsWith(expression.pattern))
-							.map(expression -> parseLimitation(sLimitation.substring(0, expression.pattern.length()), expression))
+							.map(expression -> parseLimitation(sLimitation.substring(expression.pattern.length()), expression))
 							.filter(l -> l != null)
 							.findFirst()
 							.orElse(null);
-					
+
 					if(limitation == null) {
 						throw new DependencyLimitationException("dependency-limitation '" + sLimitation + "' could not resolved!");
 					}
