@@ -21,9 +21,11 @@ import de.curoerp.core.modularity.exception.ModuleFileAlreadyLoadedException;
 import de.curoerp.core.modularity.exception.ModuleServiceAllreadyBootedException;
 import de.curoerp.core.modularity.language.ILocaleService;
 import de.curoerp.core.modularity.language.LocaleService;
+import de.curoerp.core.modularity.module.DependencyInfo;
 import de.curoerp.core.modularity.module.IBootModule;
 import de.curoerp.core.modularity.module.IModule;
 import de.curoerp.core.modularity.module.Module;
+import de.curoerp.core.modularity.versioning.VersionExpressions;
 
 /**
  * Central Module Service for internal..
@@ -50,12 +52,12 @@ public class ModuleService {
 	 * @throws DependencyNotResolvedException
 	 */
 	public void runModule(Module module) throws DependencyNotResolvedException {
-		if(module.getInfo().getBootClass() == null) {
-			throw new RuntimeTroubleException(new Exception("Module " + module.getInfo().getName() + " dont know any boot-class!"));
+		if(module.getBootClass() == null) {
+			throw new RuntimeTroubleException(new Exception("Module " + module.getName() + " dont know any boot-class!"));
 		}
 
 		try {
-			IBootModule obj = (IBootModule) this.resolver.findInstanceOf(module.getInfo().getBootClass());
+			IBootModule obj = (IBootModule) this.resolver.findInstanceOf(module.getBootClass());
 			obj.boot();
 		} catch(ClassCastException e) {
 			throw new RuntimeTroubleException(e);
@@ -70,7 +72,7 @@ public class ModuleService {
 	 * @throws DependencyNotResolvedException
 	 */
 	public void runModule(String name) throws DependencyNotResolvedException {
-		Module module = Arrays.stream(this.modules).filter(m -> m.getInfo().getName().equals(name)).findFirst().orElse(null);
+		Module module = Arrays.stream(this.modules).filter(m -> m.getName().equals(name)).findFirst().orElse(null);
 
 		if(module == null) {
 			throw new RuntimeTroubleException(new Exception("Module '" + name + "' not loaded!"));
@@ -121,7 +123,7 @@ public class ModuleService {
 
 		// Fetch&Load Jars in Runtime
 		this.hang();
-		LoggingService.info("module-jars successfully heaped in runtime: " + String.join(", ", Arrays.stream(this.modules).map(m -> m.getInfo().getName()).toArray(c -> new String[c])));
+		LoggingService.info("module-jars successfully heaped in runtime: " + String.join(", ", Arrays.stream(this.modules).map(m -> m.getName()).toArray(c -> new String[c])));
 
 		// Check module-dependencies
 		this.check();
@@ -173,9 +175,26 @@ public class ModuleService {
 	 * @return [String=first unresolved dependency]|[null=no unresolved dependencies]
 	 */
 	public String findUnresolvedDependency(Module module) {
-		for (String dependency : module.getInfo().getDependencies()) {
-			if(!Arrays.stream(this.modules).anyMatch(dModule -> dModule.getInfo().getName().equalsIgnoreCase(dependency))) {
-				return dependency;
+		LoggingService.info("\t# check dependencies for module '" + module.getDisplayName() + "'");
+		
+		for (DependencyInfo dependencyInfo : module.getDependencies()) {
+			LoggingService.info("\t## check dependency (" + dependencyInfo.name + ")");
+			
+			Module dependencyModule = Arrays.stream(this.modules).filter(m -> m.getName().equals(dependencyInfo.name)).findFirst().orElse(null);
+			if(dependencyModule == null) {
+				LoggingService.info("\t### module not found (" + dependencyInfo.name + ")");
+				return dependencyInfo.name;
+			}
+			
+			boolean allMatch = dependencyModule.getVersion().allMatch(
+					Arrays.stream(dependencyInfo.versions).map(v -> v.value.getVersion()).toArray(c -> new Long[c]),
+					Arrays.stream(dependencyInfo.versions).map(v -> v.expression).toArray(c -> new VersionExpressions[c]));
+			
+			LoggingService.info("\t### matching: " + allMatch);
+			
+			if(!allMatch) {
+				LoggingService.info("\t### module version not match for " + dependencyModule.getDisplayName() + "");
+				return dependencyInfo.name;
 			}
 		}
 		return null;
@@ -195,11 +214,11 @@ public class ModuleService {
 			int unresolvedStart = unresolved.size();
 
 			for (Module module : unresolved.toArray(new Module[unresolved.size()])) {
-				LoggingService.breaker("try resolve " + module.getInfo().getName());
+				LoggingService.breaker("try resolve " + module.getDisplayName());
 
 				try {
 					this.resolver.setSpecialDependencies(this.buildSpecialDependencyMap(module));
-					this.resolver.resolveTypes(module.getInfo().getTypeInfos());
+					this.resolver.resolveTypes(module.getTypes());
 					this.resolver.cleanSpecialDependencies();
 					
 					unresolved.remove(module);
@@ -207,8 +226,8 @@ public class ModuleService {
 					
 				} catch (ModuleDependencyUnresolvableException e) {
 					this.resolver.cleanSpecialDependencies();
-					unsucceeded.add(module.getInfo().getName());
-					LoggingService.warn("..Module " + module.getInfo().getName() + " can not resolved!");
+					unsucceeded.add(module.getDisplayName());
+					LoggingService.warn("..Module " + module.getDisplayName() + " can not resolved!");
 					LoggingService.warn(e);
 					
 				} catch (ModuleControllerClassException | ModuleApiClassNotFoundException
@@ -230,7 +249,7 @@ public class ModuleService {
 		if(unresolved.size() > 0) {
 			throw new RuntimeTroubleException(new ModuleCanNotBootedException( 
 					unresolved.stream()
-					.map(module -> module.getInfo().getName())
+					.map(module -> module.getName())
 					.toArray(c -> new String[c])));
 		}
 		

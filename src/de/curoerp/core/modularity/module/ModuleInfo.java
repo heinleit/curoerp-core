@@ -3,7 +3,7 @@ package de.curoerp.core.modularity.module;
 public class ModuleInfo {
 	
 	private String name;
-	private int version;
+	private String version;
 	private String[] dependencies = new String[0];
 	private TypeInfo[] typeInfos = new TypeInfo[0];
 	private String bootClass;
@@ -12,7 +12,7 @@ public class ModuleInfo {
 		return name;
 	}
 	
-	public int getVersion() {
+	public String getVersion() {
 		return version;
 	}
 	
