@@ -8,7 +8,7 @@
 
 ```yaml
 name: Unique Module Name
-version: Integer-Version, for example: 0001 or 1
+version: Version, Format: X.X.X... (min. 1 Block (X), only integer, max. 999 per Block)
 *typeInfos:
  - type: TestType1
    api: API (Interface of TestType1)
@@ -16,10 +16,23 @@ version: Integer-Version, for example: 0001 or 1
    api: API (Interface of TestType2)
 *bootClass: Class, should be a type in typeInfos an implements de.curoerp.core.modularity.BootModule
 *dependencies:
- - Module1
- - Module2..
+ - <Name>[:Version-Limitation]
 ```
  **\* => Property is optional**
+
+ Dependency version-limitation:
+
+* Expressions:
+    * &gt; greater than
+    * \&gt;= greater than or same
+    * < smaller than
+    * < smaller than or same
+    * = (default) same
+    * ! not
+* Use:
+    * multiple limitations: comma-separated (and-gate)
+    * limitation construction: [expression]Version
+    * expression is optional, and the default is 'same'
 
 4. Add CuroERP-Core_VERSION.jar as build-path
 
