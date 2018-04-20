@@ -27,14 +27,101 @@ public class Module implements IModule {
 	private boolean isLoaded = false;
 	private ModuleInfo info;
 	
+	
+	/**
+	 * Construct Module by Jar-File
+	 * 
+	 * @param Jar-{@link File}
+	 */
 	public Module(File file) {
 		this.file = file;
 	}
 	
-	public ModuleInfo getInfo() {
-		return this.info;
+	
+	
+	/*
+	 * #########################################################
+	 * #                                                       #
+	 * # Getter                                                #
+	 * #                                                       #
+	 * #########################################################
+	 */
+	
+	/**
+	 * Get Name
+	 * 
+	 * @return {@link String}
+	 */
+	public String getName() {
+		if(!this.isLoaded) return null;
+		return this.info.name;
 	}
 	
+	/**
+	 * Get Display Name (Name and Version)
+	 * 
+	 * @return {@link String}
+	 */
+	public String getDisplayName() {
+		if(!this.isLoaded) return null;
+		return this.info.name + " (" + this.info.version + ")";
+	}
+	
+	/**
+	 * Get Module-Version
+	 * 
+	 * @return {@link Integer}
+	 */
+	public int getVersion() {
+		if(!this.isLoaded) return -1;
+		return this.info.version;
+	}
+	
+	/**
+	 * Get Dependencies
+	 * 
+	 * @return {@link String}[]
+	 */
+	public String[] getDependencies() {
+		if(!this.isLoaded) return null;
+		return this.info.dependencies;
+	}
+	
+	/**
+	 * Get Dependency-Resolve Types
+	 * 
+	 * @return {@link TypeInfo}[]
+	 */
+	public TypeInfo[] getTypes() {
+		if(!this.isLoaded) return null;
+		return this.info.typeInfos;
+	}
+	
+	/**
+	 * Get Boot-Class for booting after heaping and dependency resolvement
+	 * 
+	 * @return {@link String}
+	 */
+	public String getBootClass() {
+		if(!this.isLoaded) return null;
+		return this.info.bootClass;
+	}
+
+	
+	
+	/*
+	 * #########################################################
+	 * #                                                       #
+	 * # Information & Heaping                                 #
+	 * #                                                       #
+	 * #########################################################
+	 */
+	
+	/**
+	 * Fetch module-information from jar-file/cmod.yml
+	 * 
+	 * @throws ModuleCanNotBeLoadedException
+	 */
 	public void loadInfo() throws ModuleCanNotBeLoadedException {
 		ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 		try {
@@ -53,6 +140,7 @@ public class Module implements IModule {
 	}
 	
 	/**
+	 * heap jar-file in actual runtime
 	 * 
 	 * @throws ModuleFileAlreadyLoadedException 
 	 * @throws ModuleCanNotBeLoadedException 

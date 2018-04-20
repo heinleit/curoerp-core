@@ -50,12 +50,12 @@ public class ModuleService {
 	 * @throws DependencyNotResolvedException
 	 */
 	public void runModule(Module module) throws DependencyNotResolvedException {
-		if(module.getInfo().getBootClass() == null) {
-			throw new RuntimeTroubleException(new Exception("Module " + module.getInfo().getName() + " dont know any boot-class!"));
+		if(module.getBootClass() == null) {
+			throw new RuntimeTroubleException(new Exception("Module " + module.getName() + " dont know any boot-class!"));
 		}
 
 		try {
-			IBootModule obj = (IBootModule) this.resolver.findInstanceOf(module.getInfo().getBootClass());
+			IBootModule obj = (IBootModule) this.resolver.findInstanceOf(module.getBootClass());
 			obj.boot();
 		} catch(ClassCastException e) {
 			throw new RuntimeTroubleException(e);
@@ -70,7 +70,7 @@ public class ModuleService {
 	 * @throws DependencyNotResolvedException
 	 */
 	public void runModule(String name) throws DependencyNotResolvedException {
-		Module module = Arrays.stream(this.modules).filter(m -> m.getInfo().getName().equals(name)).findFirst().orElse(null);
+		Module module = Arrays.stream(this.modules).filter(m -> m.getName().equals(name)).findFirst().orElse(null);
 
 		if(module == null) {
 			throw new RuntimeTroubleException(new Exception("Module '" + name + "' not loaded!"));
@@ -121,7 +121,7 @@ public class ModuleService {
 
 		// Fetch&Load Jars in Runtime
 		this.hang();
-		LoggingService.info("module-jars successfully heaped in runtime: " + String.join(", ", Arrays.stream(this.modules).map(m -> m.getInfo().getName()).toArray(c -> new String[c])));
+		LoggingService.info("module-jars successfully heaped in runtime: " + String.join(", ", Arrays.stream(this.modules).map(m -> m.getName()).toArray(c -> new String[c])));
 
 		// Check module-dependencies
 		this.check();
@@ -173,8 +173,8 @@ public class ModuleService {
 	 * @return [String=first unresolved dependency]|[null=no unresolved dependencies]
 	 */
 	public String findUnresolvedDependency(Module module) {
-		for (String dependency : module.getInfo().getDependencies()) {
-			if(!Arrays.stream(this.modules).anyMatch(dModule -> dModule.getInfo().getName().equalsIgnoreCase(dependency))) {
+		for (String dependency : module.getDependencies()) {
+			if(!Arrays.stream(this.modules).anyMatch(dModule -> dModule.getName().equalsIgnoreCase(dependency))) {
 				return dependency;
 			}
 		}
@@ -195,11 +195,11 @@ public class ModuleService {
 			int unresolvedStart = unresolved.size();
 
 			for (Module module : unresolved.toArray(new Module[unresolved.size()])) {
-				LoggingService.breaker("try resolve " + module.getInfo().getName());
+				LoggingService.breaker("try resolve " + module.getName());
 
 				try {
 					this.resolver.setSpecialDependencies(this.buildSpecialDependencyMap(module));
-					this.resolver.resolveTypes(module.getInfo().getTypeInfos());
+					this.resolver.resolveTypes(module.getTypes());
 					this.resolver.cleanSpecialDependencies();
 					
 					unresolved.remove(module);
@@ -207,8 +207,8 @@ public class ModuleService {
 					
 				} catch (ModuleDependencyUnresolvableException e) {
 					this.resolver.cleanSpecialDependencies();
-					unsucceeded.add(module.getInfo().getName());
-					LoggingService.warn("..Module " + module.getInfo().getName() + " can not resolved!");
+					unsucceeded.add(module.getName());
+					LoggingService.warn("..Module " + module.getName() + " can not resolved!");
 					LoggingService.warn(e);
 					
 				} catch (ModuleControllerClassException | ModuleApiClassNotFoundException
@@ -230,7 +230,7 @@ public class ModuleService {
 		if(unresolved.size() > 0) {
 			throw new RuntimeTroubleException(new ModuleCanNotBootedException( 
 					unresolved.stream()
-					.map(module -> module.getInfo().getName())
+					.map(module -> module.getName())
 					.toArray(c -> new String[c])));
 		}
 		
