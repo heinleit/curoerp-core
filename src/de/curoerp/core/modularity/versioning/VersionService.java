@@ -46,6 +46,19 @@ public class VersionService {
 	}
 
 	/**
+	 * parse version-string to numeric version
+	 *
+	 * @param Version {@link String}
+	 * @return {@link Long} Version, -1 when version invalid
+	 */
+	public static long tryParse(String version) {
+		try {
+			return parse(version);
+		} catch (ModuleVersionStringInvalidException e) { }
+		return -1;
+	}
+
+	/**
 	 * reverse-engineering: version-number to version-string
 	 * 
 	 * @param version {@link Long}
@@ -58,11 +71,11 @@ public class VersionService {
 			// find number
 			long multiplicator = (long)Math.pow(1000, (positions - i) - 1);
 			long v = version/multiplicator;
-			
+
 			// append number and dot
 			versionBuilder.append(versionBuilder.length() > 0 ? "." : "");
 			versionBuilder.append(v);
-			
+
 			// correcting version for under-versions
 			version -= v*multiplicator;
 		}

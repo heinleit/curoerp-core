@@ -9,6 +9,8 @@ import java.util.MissingResourceException;
 
 import de.curoerp.core.exception.RuntimeTroubleException;
 import de.curoerp.core.logging.LoggingService;
+import de.curoerp.core.modularity.dependency.DependencyInfo;
+import de.curoerp.core.modularity.dependency.DependencyLimitation;
 import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
 import de.curoerp.core.modularity.exception.ModuleApiClassNotFoundException;
 import de.curoerp.core.modularity.exception.ModuleBasePathNotExistsException;
@@ -75,7 +77,7 @@ public class ModuleService {
 		if(module == null) {
 			throw new RuntimeTroubleException(new Exception("Module '" + name + "' not loaded!"));
 		}
-		
+
 		this.runModule(module);
 	}
 
@@ -89,7 +91,7 @@ public class ModuleService {
 		if(this.booted) {
 			throw new RuntimeTroubleException(new ModuleServiceAllreadyBootedException());
 		}
-		
+
 		if(!directory.exists() || !directory.isDirectory()) {
 			throw new RuntimeTroubleException(new ModuleBasePathNotExistsException());
 		}
@@ -173,9 +175,21 @@ public class ModuleService {
 	 * @return [String=first unresolved dependency]|[null=no unresolved dependencies]
 	 */
 	public String findUnresolvedDependency(Module module) {
-		for (String dependency : module.getDependencies()) {
-			if(!Arrays.stream(this.modules).anyMatch(dModule -> dModule.getSystemName().equalsIgnoreCase(Module.parseSystemName(dependency)))) {
-				return dependency;
+		for (DependencyInfo dependency : module.getDependencies()) {
+			Module dependModule = Arrays.stream(this.modules)
+					.filter(dModule -> dModule.getSystemName().equalsIgnoreCase(Module.parseSystemName(dependency.name)))
+					.findFirst()
+					.orElse(null);
+			if(dependModule == null) {
+				return dependency.name;
+			}
+
+			DependencyLimitation notMatchLimitation = Arrays.stream(dependency.limitations)
+					.filter(limitation -> !limitation.version.match(dependModule.getVersion(), limitation.expression))
+					.findFirst()
+					.orElse(null);
+			if(notMatchLimitation != null) {
+				return dependency.name + " (" + notMatchLimitation.expression + " " + notMatchLimitation.version.getVersionName() + ")";
 			}
 		}
 		return null;
@@ -200,23 +214,23 @@ public class ModuleService {
 					this.resolver.setSpecialDependencies(this.buildSpecialDependencyMap(module));
 					this.resolver.resolveTypes(module.getTypes());
 					this.resolver.cleanSpecialDependencies();
-					
+
 					unresolved.remove(module);
 					LoggingService.info("..resolved");
-					
+
 				} catch (ModuleDependencyUnresolvableException e) {
 					this.resolver.cleanSpecialDependencies();
 					LoggingService.warn("..Module " + module.getDisplayName() + " can not resolved!");
 					LoggingService.warn(e);
-					
+
 				} catch (ModuleControllerClassException | ModuleApiClassNotFoundException
 						| ModuleControllerDoesntImplementApiException | ModuleCanNotBootedException e) {
-					
+
 					this.resolver.cleanSpecialDependencies();
 					throw new RuntimeTroubleException(e);
-				
+
 				}
-				
+
 			}
 
 			if(unresolvedStart == unresolved.size()) {
@@ -231,23 +245,23 @@ public class ModuleService {
 					.map(module -> module.getDisplayName())
 					.toArray(c -> new String[c])));
 		}
-		
+
 		LoggingService.breaker("all modules resolved");
 	}
-	
-	
+
+
 	private HashMap<DependencyType, Object> buildSpecialDependencyMap(Module currentModule) {
 		HashMap<DependencyType, Object> map = new HashMap<>();
-		
+
 		// map builder
 		map.put(DependencyType.CurrentModule, (IModule)currentModule);
-		
+
 		try {
 			map.put(DependencyType.LocaleService, (ILocaleService) new LocaleService(currentModule));
 		} catch(MissingResourceException e) {
 			LoggingService.warn(e);
 		}
-		
+
 		return map;
 	}
 
