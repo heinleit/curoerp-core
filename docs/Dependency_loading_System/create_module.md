@@ -24,7 +24,7 @@ version: Version, Format: X.X.X... (min. 1 Block (X), only integer, max. 999 per
 
 * Expressions:
     * &gt; greater than
-    * \&gt;= greater than or same
+    * &gt;= greater than or same
     * < smaller than
     * < smaller than or same
     * = (default) same
