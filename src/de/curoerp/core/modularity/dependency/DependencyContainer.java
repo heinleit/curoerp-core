@@ -30,15 +30,11 @@ public class DependencyContainer {
 	 * @throws DependencyNotResolvedException
 	 */
 	public Object findSingleInstanceOf(String fqcn) throws DependencyNotResolvedException {
-		if(!this.resolvedDependencies.stream().anyMatch(d -> d.classPath.equals(fqcn))) {
-			try {
-				return findSingleInstanceOf(Class.forName(fqcn));
-			} catch (ClassNotFoundException e) {
-				throw new DependencyNotResolvedException("class '" + fqcn + "' can not found in current runtime (module not loaded?)");
-			}
+		try {
+			return findSingleInstanceOf(Class.forName(fqcn));
+		} catch (ClassNotFoundException e) {
+			throw new DependencyNotResolvedException("class '" + fqcn + "' can not found in current runtime (module not loaded?)");
 		}
-
-		return this.resolvedDependencies.stream().filter(d -> d.classPath.equals(fqcn)).toArray(c -> new Object[c]);
 	}
 
 	/**
