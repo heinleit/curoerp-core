@@ -7,8 +7,8 @@ import org.apache.commons.cli.ParseException;
 
 import de.curoerp.core.exception.RuntimeTroubleException;
 import de.curoerp.core.logging.LoggingService;
-import de.curoerp.core.modularity.DependencyService;
 import de.curoerp.core.modularity.ModuleService;
+import de.curoerp.core.modularity.dependency.DependencyContainer;
 import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
 
 public class Runtime {
@@ -16,8 +16,8 @@ public class Runtime {
 	public static void main(String[] args) {
 		CLIService cli = new CLIService(args);
 		CommandLine cmd = null;
-		DependencyService dependency = new DependencyService();
-		ModuleService modules = new ModuleService(dependency);
+		DependencyContainer container = new DependencyContainer();
+		ModuleService modules = new ModuleService(container);
 		
 		// parse cli
 		try {
