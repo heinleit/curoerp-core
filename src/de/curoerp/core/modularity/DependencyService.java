@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Map.Entry;
 
 import de.curoerp.core.logging.LoggingService;
+import de.curoerp.core.modularity.annotations.CuroNoDependency;
 import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
 import de.curoerp.core.modularity.exception.ModuleApiClassNotFoundException;
 import de.curoerp.core.modularity.exception.ModuleCanNotBootedException;
@@ -50,7 +51,7 @@ public class DependencyService {
 			try {
 				return findInstanceOf(Class.forName(fqcn));
 			} catch (ClassNotFoundException e) {
-				throw new DependencyNotResolvedException();
+				throw new DependencyNotResolvedException("class '" + fqcn + "' can not found in current runtime (module not loaded?)");
 			}
 		}
 
@@ -67,13 +68,11 @@ public class DependencyService {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T findInstanceOf(Class<T> cls) throws DependencyNotResolvedException {
-		SpecialDependency annotation = cls.getAnnotation(SpecialDependency.class);
-		if(annotation != null) {
-			if(this.specialDependencies.containsKey(annotation.type())) {
-				return (T) this.specialDependencies.get(annotation.type());
-			}
+		T obj = this.processAnnotations(cls);
+		if(obj != null) {
+			return obj;
 		}
-
+		
 		if(!this.availableDependencies.containsKey(cls.getName())) {
 			Optional<String> key = this.availableDependencies.entrySet().stream()
 					.filter(e -> cls.isAssignableFrom(e.getValue().getClass()))
@@ -83,10 +82,29 @@ public class DependencyService {
 				return (T) this.availableDependencies.get(key.get());
 			}
 
-			throw new DependencyNotResolvedException();
+			throw new DependencyNotResolvedException("dependency '" + cls.getName() + "' not resolved");
 		}
 
 		return (T) this.availableDependencies.get(cls.getName());
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T processAnnotations(Class<T> cls) throws DependencyNotResolvedException {
+		// is no dependency?
+		CuroNoDependency aNoDependency = cls.getAnnotation(CuroNoDependency.class);
+		if(aNoDependency != null) {
+			throw new DependencyNotResolvedException("dependency '" + cls.getName() + "' is marked as not resolvable (@CuroNoDependency)");
+		}
+		
+		// specia dependency?
+		SpecialDependency aSpecialDependency = cls.getAnnotation(SpecialDependency.class);
+		if(aSpecialDependency != null) {
+			if(this.specialDependencies.containsKey(aSpecialDependency.type())) {
+				return (T) this.specialDependencies.get(aSpecialDependency.type());
+			}
+		}
+		
+		return null;
 	}
 
 	/**
