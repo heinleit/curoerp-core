@@ -9,6 +9,7 @@ import java.util.MissingResourceException;
 
 import de.curoerp.core.exception.RuntimeTroubleException;
 import de.curoerp.core.logging.LoggingService;
+import de.curoerp.core.modularity.dependency.DependencyContainer;
 import de.curoerp.core.modularity.dependency.DependencyInfo;
 import de.curoerp.core.modularity.dependency.DependencyLimitation;
 import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
@@ -39,9 +40,11 @@ public class ModuleService {
 	private Module[] modules = new Module[0];
 	private DependencyService resolver;
 	private boolean booted = false;
+	private DependencyContainer container;
 
-	public ModuleService(DependencyService resolver) {
-		this.resolver = resolver;
+	public ModuleService(DependencyContainer container) {
+		this.resolver = new DependencyService(container);
+		this.container = container;
 	}
 
 	/**
@@ -57,7 +60,7 @@ public class ModuleService {
 		}
 
 		try {
-			IBootModule obj = (IBootModule) this.resolver.findInstanceOf(module.getBootClass());
+			IBootModule obj = (IBootModule) this.container.findSingleInstanceOf(module.getBootClass());
 			obj.boot();
 		} catch(ClassCastException e) {
 			throw new RuntimeTroubleException(e);
@@ -211,22 +214,22 @@ public class ModuleService {
 				LoggingService.breaker("try resolve " + module.getDisplayName());
 
 				try {
-					this.resolver.setSpecialDependencies(this.buildSpecialDependencyMap(module));
+					this.container.setSessionDependencies(this.buildSpecialDependencyMap(module));
 					this.resolver.resolveTypes(module.getTypes());
-					this.resolver.cleanSpecialDependencies();
+					this.container.cleanSessionDependencies();
 
 					unresolved.remove(module);
 					LoggingService.info("..resolved");
 
 				} catch (ModuleDependencyUnresolvableException e) {
-					this.resolver.cleanSpecialDependencies();
+					this.container.cleanSessionDependencies();
 					LoggingService.warn("..Module " + module.getDisplayName() + " can not resolved!");
 					LoggingService.warn(e);
 
 				} catch (ModuleControllerClassException | ModuleApiClassNotFoundException
-						| ModuleControllerDoesntImplementApiException | ModuleCanNotBootedException e) {
+						| ModuleControllerDoesntImplementApiException | ModuleCanNotBootedException | DependencyNotResolvedException e) {
 
-					this.resolver.cleanSpecialDependencies();
+					this.container.cleanSessionDependencies();
 					throw new RuntimeTroubleException(e);
 
 				}

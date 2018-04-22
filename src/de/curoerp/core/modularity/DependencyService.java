@@ -5,10 +5,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.Map.Entry;
 
 import de.curoerp.core.logging.LoggingService;
+import de.curoerp.core.modularity.dependency.DependencyContainer;
 import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
 import de.curoerp.core.modularity.exception.ModuleApiClassNotFoundException;
 import de.curoerp.core.modularity.exception.ModuleCanNotBootedException;
@@ -26,67 +26,10 @@ import de.curoerp.core.modularity.module.TypeInfo;
  */
 public class DependencyService {
 
-	private HashMap<String, Object> availableDependencies;
-	private HashMap<DependencyType, Object> specialDependencies = new HashMap<>();
-
-	public DependencyService() {
-		this.availableDependencies = new HashMap<>();
-	}
-
-	/*
-	 * Librarian
-	 */
-
-	/**
-	 * find instance of type (String)
-	 * 
-	 * @param fqcn {@link String} full qualified class name
-	 * @return T instance of fqcn
-	 * 
-	 * @throws DependencyNotResolvedException
-	 */
-	public Object findInstanceOf(String fqcn) throws DependencyNotResolvedException {
-		if(!this.availableDependencies.containsKey(fqcn)) {
-			try {
-				return findInstanceOf(Class.forName(fqcn));
-			} catch (ClassNotFoundException e) {
-				throw new DependencyNotResolvedException();
-			}
-		}
-
-		return this.availableDependencies.get(fqcn);
-	}
-
-	/**
-	 * find instance of type (Class<T>)
-	 * 
-	 * @param cls Class<T>
-	 * @return T instance of cls
-	 * 
-	 * @throws DependencyNotResolvedException
-	 */
-	@SuppressWarnings("unchecked")
-	public <T> T findInstanceOf(Class<T> cls) throws DependencyNotResolvedException {
-		SpecialDependency annotation = cls.getAnnotation(SpecialDependency.class);
-		if(annotation != null) {
-			if(this.specialDependencies.containsKey(annotation.type())) {
-				return (T) this.specialDependencies.get(annotation.type());
-			}
-		}
-
-		if(!this.availableDependencies.containsKey(cls.getName())) {
-			Optional<String> key = this.availableDependencies.entrySet().stream()
-					.filter(e -> cls.isAssignableFrom(e.getValue().getClass()))
-					.map(e -> e.getKey())
-					.findFirst();
-			if(key.isPresent()) {
-				return (T) this.availableDependencies.get(key.get());
-			}
-
-			throw new DependencyNotResolvedException();
-		}
-
-		return (T) this.availableDependencies.get(cls.getName());
+	private DependencyContainer container;
+	
+	public DependencyService(DependencyContainer container) {
+		this.container = container;
 	}
 
 	/**
@@ -99,8 +42,9 @@ public class DependencyService {
 	 * @throws ModuleApiClassNotFoundException =>  the api-interface isn't corrent
 	 * @throws ModuleControllerDoesntImplementApiException => type-class doesn't implement api-interface!
 	 * @throws ModuleCanNotBootedException => Error while construction, something went horrible wrong, Fuck! -> Cancel&check System!!!
+	 * @throws DependencyNotResolvedException 
 	 */
-	public void resolveTypes(TypeInfo[] typeInfos) throws ModuleDependencyUnresolvableException, ModuleControllerClassException, ModuleControllerDoesntImplementApiException, ModuleApiClassNotFoundException, ModuleCanNotBootedException {
+	public void resolveTypes(TypeInfo[] typeInfos) throws ModuleDependencyUnresolvableException, ModuleControllerClassException, ModuleControllerDoesntImplementApiException, ModuleApiClassNotFoundException, ModuleCanNotBootedException, DependencyNotResolvedException {
 
 		HashMap<String, Class<?>> queue = new HashMap<>();
 
@@ -140,7 +84,7 @@ public class DependencyService {
 				}
 
 				// Nullpointer is no option, it's an other problem!
-				this.availableDependencies.put(entry.getValue().getName(), obj);
+				this.container.addResolvedDependency(entry.getValue(), obj);
 				queue.remove(entry.getKey());
 			}
 
@@ -151,17 +95,6 @@ public class DependencyService {
 	/*
 	 * Instantiation
 	 */
-
-	public void setSpecialDependencies(HashMap<DependencyType, Object> map) {
-		this.cleanSpecialDependencies();
-		for (Entry<DependencyType, Object> entry : map.entrySet()) {
-			this.specialDependencies.put(entry.getKey(), entry.getValue());
-		}
-	}
-
-	public void cleanSpecialDependencies() {
-		this.specialDependencies = new HashMap<>();
-	}
 
 	private Object createInstance(Class<?> type) throws ModuleCanNotBootedException {
 		Object obj = null;
@@ -181,7 +114,7 @@ public class DependencyService {
 				for (Class<?> cls : constructor.getParameterTypes()) {
 					// find direct or in Superclases&Co.
 					try {
-						params.add(this.findInstanceOf(cls));
+						params.add(this.container.findSingleInstanceOf(cls));
 						continue;
 					} catch (DependencyNotResolvedException e) { }
 
@@ -304,7 +237,7 @@ public class DependencyService {
 			// check external resolvements
 			for (Class<?> dependency : unresolved.toArray(new Class<?>[unresolved.size()])) {
 				try {
-					if(findInstanceOf(dependency) != null) {
+					if(this.container.findSingleInstanceOf(dependency) != null) {
 						unresolved.remove(dependency);	
 					}
 				} catch (DependencyNotResolvedException e) {
@@ -314,5 +247,5 @@ public class DependencyService {
 		}
 		return unresolved.toArray(new Class<?>[unresolved.size()]);
 	}
-
+	
 }
