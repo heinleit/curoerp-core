@@ -6,10 +6,11 @@ import java.util.Map.Entry;
 
 import de.curoerp.core.modularity.DependencyType;
 import de.curoerp.core.modularity.SpecialDependency;
+import de.curoerp.core.modularity.annotations.CuroMultiDependency;
 import de.curoerp.core.modularity.annotations.CuroNoDependency;
 import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
 
-public class DependencyContainer {
+public class DependencyContainer implements IDependencyContainer {
 
 	private ArrayList<Dependency> resolvedDependencies;
 	private HashMap<DependencyType, Object> instanceDependencies = new HashMap<>();
@@ -46,11 +47,33 @@ public class DependencyContainer {
 	 * @throws DependencyNotResolvedException
 	 */
 	public Object findSingleInstanceOf(Class<?> cls) throws DependencyNotResolvedException {
-		Object[] ts = findInstanceOf(cls);
+		// is multi-dependency?
+		if(this.isMultiDependency(cls)) {
+			throw new DependencyNotResolvedException("You are searching for a MDO (@CuroMultiDependency)! Please use findInstancOf instead of findSingleInstanceOf!");
+		}
+		
+		Object[] ts = findInstancesOf(cls);
 		if(ts.length > 1) {
-			throw new DependencyNotResolvedException("more than 1 Dependency of '" + cls.getName() + "'");
+			throw new DependencyNotResolvedException("more than 1 dependency of '" + cls.getName() + "'");
 		}
 		return ts[0];
+	}
+
+	/**
+	 * find all instances of type (String)
+	 * 
+	 * @param fqcn {@link String} full qualified class name
+	 * @return T instances of fqcn
+	 * 
+	 * @throws DependencyNotResolvedException
+	 */
+	@Override
+	public Object[] findInstancesOf(String fqcn) throws DependencyNotResolvedException {
+		try {
+			return findInstancesOf(Class.forName(fqcn));
+		} catch (ClassNotFoundException e) {
+			throw new DependencyNotResolvedException("class '" + fqcn + "' can not found in current runtime (module not loaded?)");
+		}
 	}
 
 	/**
@@ -61,12 +84,19 @@ public class DependencyContainer {
 	 * 
 	 * @throws DependencyNotResolvedException
 	 */
-	public Object[] findInstanceOf(Class<?> cls) throws DependencyNotResolvedException {
+	public Object[] findInstancesOf(Class<?> cls) throws DependencyNotResolvedException {
+		// check special: this
+		if(cls.getName().equals(IDependencyContainer.class.getName())) {
+			return new Object[] {this};
+		}
+		
+		// check special: annotations
 		Object obj = this.processAnnotations(cls);
 		if(obj != null) {
 			return new Object[] {obj};
 		}
 
+		// check special: parent-classes
 		if(!this.resolvedDependencies.stream().anyMatch(d -> d.classPath.equals(cls.getName()))) {
 			Dependency[] dependencies = this.resolvedDependencies.stream()
 					.filter(e -> cls.isAssignableFrom(e.instance.getClass()))
@@ -78,6 +108,7 @@ public class DependencyContainer {
 			throw new DependencyNotResolvedException("dependency '" + cls.getName() + "' not resolved");
 		}
 
+		// everything is good!
 		return this.resolvedDependencies.stream().filter(d -> d.classPath.equals(cls.getName())).toArray(c -> new Object[c]);
 	}
 
@@ -89,9 +120,8 @@ public class DependencyContainer {
 	 * @throws DependencyNotResolvedException
 	 */
 	private Object processAnnotations(Class<?> cls) throws DependencyNotResolvedException {
-		// is no dependency?
-		CuroNoDependency aNoDependency = cls.getAnnotation(CuroNoDependency.class);
-		if(aNoDependency != null) {
+		// is not an dependency?
+		if(this.isNoDependency(cls)) {
 			throw new DependencyNotResolvedException("dependency '" + cls.getName() + "' is marked as not resolvable (@CuroNoDependency)");
 		}
 
@@ -104,6 +134,14 @@ public class DependencyContainer {
 		}
 
 		return null;
+	}
+
+	private boolean isNoDependency(Class<?> cls) {
+		return cls.getAnnotation(CuroNoDependency.class) != null;
+	}
+	
+	private boolean isMultiDependency(Class<?> cls) {
+		return cls.getAnnotation(CuroMultiDependency.class) != null;
 	}
 	
 	/*
