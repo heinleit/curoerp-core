@@ -6,6 +6,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
 import de.curoerp.core.exception.RuntimeTroubleException;
+import de.curoerp.core.logging.Logging;
+import de.curoerp.core.logging.LoggingLevel;
 import de.curoerp.core.logging.LoggingService;
 import de.curoerp.core.modularity.ModuleService;
 import de.curoerp.core.modularity.dependency.DependencyContainer;
@@ -14,6 +16,9 @@ import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
 public class Runtime {
 
 	public static void main(String[] args) {
+		// start logging-service
+		LoggingService.DefaultLogging = new Logging(LoggingLevel.INFO);
+		
 		CLIService cli = new CLIService(args);
 		CommandLine cmd = null;
 		DependencyContainer container = new DependencyContainer();
@@ -28,6 +33,20 @@ public class Runtime {
 		} catch (ParseException e1) {
 			cli.displayHelp();
 			return;
+		}
+		
+		// logging-level
+		if(CLIService.check(cmd, "l")) {
+			switch (cmd.getOptionValue("l").toLowerCase().trim()) {
+			case "error":
+			case "1":
+				LoggingService.DefaultLogging.setLoggingLevel(LoggingLevel.ERROR);
+				break;
+			case "warn":
+			case "2":
+				LoggingService.DefaultLogging.setLoggingLevel(LoggingLevel.WARN);
+				break;
+			}
 		}
 		
 		LoggingService.info("Start DlS");
