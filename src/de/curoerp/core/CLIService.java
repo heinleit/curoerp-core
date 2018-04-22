@@ -33,6 +33,10 @@ public class CLIService {
 		o = new Option("b", true, "Boot Module");
 		o.setArgName("Module");
 		this.options.addOption(o);
+
+		o = new Option("l", true, "Logging Level (1-3, ERROR/WARN/INFO)");
+		o.setArgName("Level");
+		this.options.addOption(o);
 	}
 
 	public CommandLine getCli() throws ParseException {

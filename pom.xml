@@ -43,54 +43,6 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-			<!--<plugin> => META-INF/versions/9/module-info.class Macht mukken, wegen Java 1.9
-                <groupId>com.github.wvengen</groupId>
-                <artifactId>proguard-maven-plugin</artifactId>
-                <executions>
-                   <execution>
-                       <phase>package</phase>
-                       <goals><goal>proguard</goal></goals>
-                   </execution>
-                </executions>
-                <configuration>
-                    <obfuscate>true</obfuscate>
-                    <injar>${project.build.finalName}.jar</injar>
-                    <outjar>${project.build.finalName}-small.jar</outjar>
-                    <outputDirectory>${project.build.directory}</outputDirectory>
-                    <proguardInclude>${basedir}/proguard.conf</proguardInclude>
-                    <libs>
-                        <lib>${java.home}/lib/rt.jar</lib>
-                        <lib>${java.home}/lib/jsse.jar</lib>
-                    </libs>
-                    <exclusions>
-                    	<exclusion>
-						    <groupId>*apache*</groupId>
-						    <artifactId>*</artifactId>
-					    </exclusion>
-                    	<exclusion>
-						    <groupId>com.*</groupId>
-						    <artifactId>*</artifactId>
-					    </exclusion>
-                    	<exclusion>
-						    <groupId>commons-*</groupId>
-						    <artifactId>*</artifactId>
-					    </exclusion>
-			        </exclusions>
-                </configuration>
-            </plugin>-->
-			<!--<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.1.0</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<mainClass>de.curoerp.core.Runtime</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>-->
 		</plugins>
 	</build>
 	<dependencies>
@@ -118,16 +70,6 @@
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.6</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-			<version>2.11.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-			<version>2.11.0</version>
 		</dependency>
 	</dependencies>
 	<url>http://curoerp.de</url>

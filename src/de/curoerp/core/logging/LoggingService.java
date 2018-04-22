@@ -1,65 +1,45 @@
 package de.curoerp.core.logging;
 
-
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.Configurator;
-
 public class LoggingService {
-
-	private Logger logger;
-
-	public LoggingService() {
-		Configurator.setLevel("CuroLogger", Level.INFO);
-		this.logger = LogManager.getLogger("CuroLogger");//"curoerp-core");
-	}
+	
+	public static Logging DefaultLogging;
 
 	/*
 	 * Logging => direct and static access
 	 */
 	public static void error(String log) {
-		boot().logger.error(log);
+		DefaultLogging.log(LoggingLevel.ERROR, log);
 	}
 
 	public static void error(Exception exc) {
-		boot().logger.error(exc.getMessage());
+		LoggingService.logException(LoggingLevel.ERROR, exc);
 	}
 
 	public static void warn(String log) {
-		boot().logger.warn(log);
+		DefaultLogging.log(LoggingLevel.WARN, log);
 	}
 
 	public static void warn(Exception exc) {
-		boot().logger.warn(exc);
+		LoggingService.logException(LoggingLevel.WARN, exc);
 	}
 
 	public static void info(String log) {
-		boot().logger.info(log);
+		DefaultLogging.log(LoggingLevel.INFO, log);
 	}
 
 	public static void info(Exception exc) {
-		boot().logger.info(exc.getMessage());
+		LoggingService.logException(LoggingLevel.INFO, exc);
 	}
-	
+
 	public static void breaker(String title) {
 		LoggingService.info("########## " + title.trim().toUpperCase() + " ##########");
 	}
 
-
-
-	/*
-	 * Instance
-	 */
-
-	private static LoggingService instance;
-
-	public static LoggingService boot() {
-		if(LoggingService.instance == null) {
-			LoggingService.instance = new LoggingService();
+	private static void logException(LoggingLevel level, Exception exc) {
+		DefaultLogging.log(level, exc.getMessage());
+		for (StackTraceElement stack : exc.getStackTrace()) {
+			DefaultLogging.log(level, "\t" + stack.getClassName() + "." + stack.getMethodName() + "(" + stack.getFileName() + ":" + stack.getLineNumber() + ")");
 		}
-
-		return LoggingService.instance;
 	}
 
 }
