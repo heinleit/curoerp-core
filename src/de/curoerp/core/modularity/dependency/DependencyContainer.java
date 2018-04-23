@@ -98,10 +98,10 @@ public class DependencyContainer implements IDependencyContainer {
 
 		// check special: parent-classes
 		if(!this.resolvedDependencies.stream().anyMatch(d -> d.classPath.equals(cls.getName()))) {
-			Dependency[] dependencies = this.resolvedDependencies.stream()
+			Object[] dependencies = this.resolvedDependencies.stream()
 					.map(e -> e.instance)
 					.filter(e -> cls.isAssignableFrom(e.getClass()))
-					.toArray(c -> new Dependency[c]);
+					.toArray(c -> new Object[c]);
 			if(dependencies.length > 0) {
 				return dependencies;
 			}
