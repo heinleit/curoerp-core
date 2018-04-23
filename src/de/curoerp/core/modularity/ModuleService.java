@@ -116,6 +116,14 @@ public class ModuleService {
 
 		this.modules = modules;
 	}
+	/**
+	 * for debugging: Load Modules by Object-Array
+	 * 
+	 * not really type-safe!
+	 */
+	public void setModules(Module[] modules) {
+		this.modules = modules;
+	}
 
 	/**
 	 * Boot the Module-System

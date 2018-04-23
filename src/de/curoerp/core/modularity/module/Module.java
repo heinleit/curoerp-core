@@ -33,6 +33,7 @@ public class Module implements IModule {
 
 	private File file;
 	private boolean isLoaded = false;
+	private boolean isDebug = false;
 	private ModuleInfo info;
 	private VersionInfo version;
 	private DependencyInfo[] dependencies;
@@ -44,6 +45,23 @@ public class Module implements IModule {
 	 */
 	public Module(File file) {
 		this.file = file;
+	}
+
+	/**
+	 * Construct Module by VersionInfo, ModuleInfo
+	 * 
+	 * ONLY FOR DEBUGGING!
+	 * 
+	 * @param Jar-{@link File}
+	 * @throws DependencyLimitationException 
+	 */
+	public Module(VersionInfo version, ModuleInfo module) throws DependencyLimitationException {
+		this.isDebug = true;
+		this.isLoaded = true;
+		this.version = version;
+		this.info = module;
+		System.out.println("MODULE NAME: " + this.info.name);
+		this.parseDependencies();
 	}
 
 
@@ -141,6 +159,10 @@ public class Module implements IModule {
 	 * @throws ModuleCanNotBeLoadedException
 	 */
 	public void loadInfo() throws ModuleCanNotBeLoadedException {
+		if(isDebug) {
+			return;
+		}
+		
 		ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 		try {
 			JarFile jarFile = new JarFile(this.file);
@@ -225,6 +247,10 @@ public class Module implements IModule {
 	 * @throws ModuleCanNotBeLoadedException 
 	 */
 	public void fetchJar() throws ModuleFileAlreadyLoadedException, ModuleCanNotBeLoadedException {
+		if(isDebug) {
+			return;
+		}
+		
 		if(this.isLoaded) {
 			throw new ModuleFileAlreadyLoadedException();
 		}
