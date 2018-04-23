@@ -2,8 +2,8 @@
 
 ## Status:
 
-![Codefactor](https://www.codefactor.io/repository/github/heinleit/curoerp-core/badge/master) 
-![Build Status](https://server-rac.com:8086/job/CuroERP-Core/badge/icon)
+[![CodeFactor](https://www.codefactor.io/repository/github/heinleit/curoerp-core/badge/master)](https://www.codefactor.io/repository/github/heinleit/curoerp-core/overview/master)
+[![Build Status](https://server-rac.com:8086/job/CuroERP-Core/badge/icon)](https://server-rac.com:8086/job/CuroERP-Core/)
 
 
 ## Index:
