@@ -54,11 +54,11 @@ public class DependencyService {
 		// check types
 		for (TypeInfo type : typeInfos) {
 			// find type
-			Class<?> typeClass = this.resolveType(type.getType());
-			LoggingService.info("Class '" + type.getType() + "' found");
+			Class<?> typeClass = this.resolveType(type.type);
+			LoggingService.info("Class '" + type.type + "' found");
 
 			// check type
-			this.checkResolvement(typeClass, type.getApi(), Arrays.stream(typeInfos).filter(type_ -> type_ != type).toArray(c -> new TypeInfo[c]));
+			this.checkResolvement(typeClass, type.api, Arrays.stream(typeInfos).filter(type_ -> type_ != type).toArray(c -> new TypeInfo[c]));
 			LoggingService.info("# validated");
 
 			// put type in resolvable Map
@@ -252,10 +252,10 @@ public class DependencyService {
 			// check internal resolvements
 			for (TypeInfo other : internal) {
 				// any api?
-				unresolved.remove(unresolved.stream().filter(c -> c.getName().equals(other.getApi())).findFirst().orElse(null));
+				unresolved.remove(unresolved.stream().filter(c -> c.getName().equals(other.api)).findFirst().orElse(null));
 
 				// any type?
-				unresolved.remove(unresolved.stream().filter(c -> c.getName().equals(other.getType())).findFirst().orElse(null));
+				unresolved.remove(unresolved.stream().filter(c -> c.getName().equals(other.type)).findFirst().orElse(null));
 			}
 
 			// check external resolvements

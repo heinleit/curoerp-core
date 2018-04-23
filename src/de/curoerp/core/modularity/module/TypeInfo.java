@@ -15,12 +15,4 @@ public class TypeInfo {
 	
 	public String type;
 	public String api = "";
-
-	public String getType() {
-		return this.type;
-	}
-
-	public String getApi() {
-		return this.api;
-	}
 }
