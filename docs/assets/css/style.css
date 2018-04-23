@@ -419,7 +419,7 @@ a:hover {
  text-align:center;
  background-color:#159957;
  background-image: url(curo.png);
- background-size: cover;
+ background-size: contain;
  background-position: center;
  background-repeat: no-repeat;
 }
