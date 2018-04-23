@@ -217,7 +217,7 @@ public class DependencyService {
 		return unresolved.toArray(new Class<?>[unresolved.size()]);
 	}
 
-	private Class<?>[] findUnresolvedDependencies(Class<?>[] dependencies, TypeInfo[] internal) throws ModuleDependencyUnresolvableException {
+	private Class<?>[] findUnresolvedDependencies(Class<?>[] dependencies, TypeInfo[] internal) {
 		// unresolved dependencies
 		ArrayList<Class<?>> unresolved = new ArrayList<>(Arrays.asList(dependencies));
 
@@ -241,6 +241,7 @@ public class DependencyService {
 						unresolved.remove(dependency);	
 					}
 				} catch (DependencyNotResolvedException e) {
+					LoggingService.debug(e);
 				}
 			}
 

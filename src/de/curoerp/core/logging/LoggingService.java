@@ -31,6 +31,14 @@ public class LoggingService {
 		LoggingService.logException(LoggingLevel.INFO, exc);
 	}
 
+	public static void debug(String log) {
+		DefaultLogging.log(LoggingLevel.DEBUG, log);
+	}
+
+	public static void debug(Exception exc) {
+		LoggingService.logException(LoggingLevel.DEBUG, exc);
+	}
+
 	public static void breaker(String title) {
 		LoggingService.info("########## " + title.trim().toUpperCase() + " ##########");
 	}
