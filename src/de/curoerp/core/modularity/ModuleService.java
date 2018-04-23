@@ -195,7 +195,7 @@ public class ModuleService {
 				return dependency.name;
 			}
 
-			DependencyLimitation notMatchLimitation = Arrays.stream(dependency.limitations)
+			DependencyLimitation notMatchLimitation = dependency.limitations == null ? null : Arrays.stream(dependency.limitations)
 					.filter(limitation -> !limitation.version.match(dependModule.getVersion(), limitation.expression))
 					.findFirst()
 					.orElse(null);
