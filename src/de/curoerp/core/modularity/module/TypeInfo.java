@@ -13,8 +13,8 @@ public class TypeInfo {
 
 	//Fields
 	
-	private String type;
-	private String api = "";
+	public String type;
+	public String api = "";
 
 	public String getType() {
 		return this.type;

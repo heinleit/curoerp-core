@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.jar.JarFile;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
 import de.curoerp.core.modularity.dependency.DependencyInfo;
 import de.curoerp.core.modularity.dependency.DependencyLimitation;
@@ -152,6 +152,8 @@ public class Module implements IModule {
 	 * #                                                       #
 	 * #########################################################
 	 */
+	
+	private final Yaml YAML_MODULEINFO = new Yaml(new Constructor(ModuleInfo.class));
 
 	/**
 	 * Fetch module-information from jar-file/cmod.yml
@@ -163,11 +165,10 @@ public class Module implements IModule {
 			return;
 		}
 		
-		ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 		try {
 			JarFile jarFile = new JarFile(this.file);
 			InputStream stream = jarFile.getInputStream(jarFile.getEntry("cmod.yml"));
-			ModuleInfo info = mapper.readValue(stream, ModuleInfo.class);
+			ModuleInfo info = YAML_MODULEINFO.loadAs(stream, ModuleInfo.class);
 
 			//cleanup
 			stream.close();
