@@ -36,7 +36,7 @@ public class LoggingService {
 	}
 
 	private static void logException(LoggingLevel level, Exception exc) {
-		DefaultLogging.log(level, exc.getMessage());
+		DefaultLogging.log(level, exc.getClass().getName() + ": " + exc.getMessage());
 		for (StackTraceElement stack : exc.getStackTrace()) {
 			DefaultLogging.log(level, "\t" + stack.getClassName() + "." + stack.getMethodName() + "(" + stack.getFileName() + ":" + stack.getLineNumber() + ")");
 		}
