@@ -1,5 +1,6 @@
 package de.curoerp.core.modularity.versioning;
 
+import de.curoerp.core.logging.LoggingService;
 import de.curoerp.core.modularity.exception.ModuleVersionStringInvalidException;
 
 public class VersionService {
@@ -28,7 +29,9 @@ public class VersionService {
 
 			try {
 				iSubVersion = Integer.parseInt(sSubVersion);
-			} catch(NumberFormatException e) { }
+			} catch(NumberFormatException e) {
+				LoggingService.debug(e);
+			}
 
 			if(iSubVersion < 0) {
 				throw new ModuleVersionStringInvalidException("version-part '" + sSubVersion + "' smaller than 0 or not parsable");
@@ -54,7 +57,9 @@ public class VersionService {
 	public static long tryParse(String version) {
 		try {
 			return parse(version);
-		} catch (ModuleVersionStringInvalidException e) { }
+		} catch (ModuleVersionStringInvalidException e) {
+			LoggingService.debug(e);
+		}
 		return -1;
 	}
 
@@ -106,7 +111,8 @@ public class VersionService {
 		case DEFAULT:
 		case SAME:
 			return firstInfo.getVersionNumeric() == secondInfo.getVersionNumeric();
+		default:
+			return false;
 		}
-		return false;
 	}
 }

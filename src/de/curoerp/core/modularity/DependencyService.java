@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
 
 import de.curoerp.core.logging.LoggingService;
 import de.curoerp.core.modularity.dependency.DependencyContainer;
