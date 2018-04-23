@@ -7,4 +7,5 @@ public interface IDependencyContainer {
 	public Object findSingleInstanceOf(String fqcn) throws DependencyNotResolvedException;
 	public Object[] findInstancesOf(Class<?> cls) throws DependencyNotResolvedException;
 	public Object[]findInstancesOf(String fqcn) throws DependencyNotResolvedException;
+	public void addResolvedDependency(Class<?> cls, Object instance) throws DependencyNotResolvedException;
 }
