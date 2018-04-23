@@ -9,11 +9,13 @@
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
   </head>
   <body>
-    <section class="page-header">
-      <h1 class="project-name">{{ site.title | default: site.github.repository_name }}</h1>
-      <h2 class="project-tagline">{{ site.description | default: site.github.project_tagline }}</h2>
-      <a href="https://deploy.curoerp.de/core-current" class="btn">Show builds</a>
-    </section>
+  	<div class="header-bg">
+	    <section class="page-header">
+	      <h1 class="project-name">{{ site.title | default: site.github.repository_name }}</h1>
+	      <h2 class="project-tagline">{{ site.description | default: site.github.project_tagline }}</h2>
+	      <a href="https://deploy.curoerp.de/core-current" class="btn">Show builds</a>
+	    </section>
+    </div>
 
     <section class="main-content">
       {{ content }}

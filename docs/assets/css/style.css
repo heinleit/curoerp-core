@@ -423,6 +423,10 @@ a:hover {
  background-position: center;
  background-repeat: no-repeat;
 }
+.header-bg {
+background-image: linear-gradient(120deg, #155799, #159957);
+padding: 20px;
+}
 @media screen and (min-width: 64em) {
  .page-header {
   padding:5rem 6rem
