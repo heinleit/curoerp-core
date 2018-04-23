@@ -18,12 +18,12 @@ public class Runtime {
 	public static void main(String[] args) {
 		// start logging-service
 		LoggingService.DefaultLogging = new Logging(LoggingLevel.DEBUG);
-		
+
 		CLIService cli = new CLIService(args);
 		CommandLine cmd = null;
 		DependencyContainer container = new DependencyContainer();
 		ModuleService modules = new ModuleService(container);
-		
+
 		// parse cli
 		try {
 			cmd = cli.getCli();
@@ -34,7 +34,7 @@ public class Runtime {
 			cli.displayHelp();
 			return;
 		}
-		
+
 		// logging-level
 		if(CLIService.check(cmd, "l")) {
 			switch (cmd.getOptionValue("l").toLowerCase().trim()) {
@@ -50,11 +50,14 @@ public class Runtime {
 			case "3":
 				LoggingService.DefaultLogging.setLoggingLevel(LoggingLevel.ERROR);
 				break;
+			default:
+				LoggingService.DefaultLogging.setLoggingLevel(LoggingLevel.DEBUG);
+				break;
 			}
 		}
-		
+
 		LoggingService.info("Start DlS");
-		
+
 		// dependencies
 		try {
 			modules.loadModules(new File(cmd.getOptionValue("s")));
@@ -65,10 +68,10 @@ public class Runtime {
 		}
 
 		LoggingService.info("DlS started!");
-		
+
 
 		LoggingService.info("Jump into Boot-Module");
-		
+
 		// finally: boot
 		try {
 			modules.runModule(cmd.getOptionValue("b"));

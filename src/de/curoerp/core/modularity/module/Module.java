@@ -188,7 +188,8 @@ public class Module implements IModule {
 	}
 
 	/**
-	 * TODO: Doku
+	 * Parse dependencies from Info-File in Dependency-objects
+	 * 
 	 * @throws DependencyLimitationException
 	 */
 	private void parseDependencies() throws DependencyLimitationException {
@@ -225,10 +226,11 @@ public class Module implements IModule {
 	}
 
 	/**
-	 * TODO: Doku
-	 * @param sVersion
-	 * @param expression
-	 * @return
+	 * parse single DependencyLimitation (Version/Expression)
+	 * 
+	 * @param sVersion {@link String}
+	 * @param expression {@link VersionExpression}
+	 * @return {@link DependencyLimitation}
 	 */
 	private DependencyLimitation parseLimitation(String sVersion, VersionExpression expression) {
 		DependencyLimitation limitation = new DependencyLimitation();

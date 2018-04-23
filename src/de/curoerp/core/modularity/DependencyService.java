@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 
 import de.curoerp.core.logging.LoggingService;
 import de.curoerp.core.modularity.dependency.DependencyContainer;
@@ -27,7 +28,7 @@ import de.curoerp.core.modularity.module.TypeInfo;
 public class DependencyService {
 
 	private DependencyContainer container;
-	
+
 	public DependencyService(DependencyContainer container) {
 		this.container = container;
 	}
@@ -116,15 +117,20 @@ public class DependencyService {
 					try {
 						params.add(this.container.findSingleInstanceOf(cls));
 						continue;
-					} catch (DependencyNotResolvedException e) { }
+					} catch (DependencyNotResolvedException e) {
+						LoggingService.debug(e);
+					}
 
 					throw new ModuleDependencyUnresolvableException(cls.getName());
 				}
 
 				obj = constructor.newInstance(params.toArray(new Object[params.size()]));
 				break;
+			default:
+				throw new IllegalArgumentException();
 			}
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			LoggingService.debug(e);
 			// fatal error => exit Runtime
 			throw new ModuleCanNotBootedException(new String[] {
 					type.getName()
@@ -141,15 +147,22 @@ public class DependencyService {
 	 * Check
 	 */
 
-	private void checkResolvement(Class<?> typeClass, String api, TypeInfo[] internal) throws ModuleDependencyUnresolvableException, ModuleControllerClassException, ModuleControllerDoesntImplementApiException, ModuleApiClassNotFoundException {
+	private void checkResolvement(Class<?> typeClass, String api, TypeInfo[] internal) throws 
+	ModuleDependencyUnresolvableException, 
+	ModuleControllerClassException, 
+	ModuleControllerDoesntImplementApiException,
+	ModuleApiClassNotFoundException {
 		LoggingService.info("# check resolvements");
 		// 1st: check API class
 		this.checkApi(api, typeClass);
 		LoggingService.info("## API '" + api + "' found/ignored");
-		
+
 		// 2nd: check constructors (max = 1)
-		// TODO
-		
+		if(typeClass.getConstructors().length > 1) {
+			LoggingService.debug("contructor (" + typeClass.getName() + ") has more than 1 constructor, throw ModuleControllerClassException");
+			throw new ModuleControllerClassException(typeClass.getName());
+		}
+
 		// 3nd: find dependencies
 		Class<?>[] dependencies = this.findDependencies(typeClass);
 		LoggingService.info("## dependencies found: " + String.join(", ", Arrays.stream(dependencies).map(d -> d.getSimpleName()).toArray(c -> new String[c])));
@@ -184,7 +197,10 @@ public class DependencyService {
 		return type;
 	}
 
-	private void checkApi(String fqn, Class<?> type) throws ModuleControllerDoesntImplementApiException, ModuleApiClassNotFoundException, ModuleControllerClassException  {
+	private void checkApi(String fqn, Class<?> type) throws 
+	ModuleControllerDoesntImplementApiException, 
+	ModuleApiClassNotFoundException, 
+	ModuleControllerClassException  {
 		if(fqn.trim().length() > 0) {
 			// search api-class
 			try {
@@ -194,8 +210,17 @@ public class DependencyService {
 				if(!Arrays.asList(type.getInterfaces()).stream().anyMatch(impl -> impl.isAssignableFrom(apiClass))) {
 					throw new ModuleControllerDoesntImplementApiException();
 				}
-
-				//TODO Check, if already resolved
+				
+				// api already used 
+				try {
+					if(this.container.findInstancesOf(apiClass).length > 0) {
+						LoggingService.error("api '" + apiClass.getName() + "' allready used.");
+						throw new ModuleApiClassNotFoundException();
+					}
+				} catch(DependencyNotResolvedException e1) {
+					LoggingService.debug("no instance of '" + apiClass.getName() + "' found. That's normal.");
+				}
+				
 			} catch (ClassNotFoundException e) {
 				throw new ModuleApiClassNotFoundException();
 			}
@@ -248,5 +273,5 @@ public class DependencyService {
 		}
 		return unresolved.toArray(new Class<?>[unresolved.size()]);
 	}
-	
+
 }
