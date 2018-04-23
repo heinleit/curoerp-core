@@ -13,3 +13,5 @@ Yes bitch!
 [load module](load_module.md)
 
 [boot module](boot_module.md)
+
+[debug module](debug_module.md)
