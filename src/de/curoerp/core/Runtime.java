@@ -17,7 +17,7 @@ public class Runtime {
 
 	public static void main(String[] args) {
 		// start logging-service
-		LoggingService.DefaultLogging = new Logging(LoggingLevel.INFO);
+		LoggingService.DefaultLogging = new Logging(LoggingLevel.DEBUG);
 		
 		CLIService cli = new CLIService(args);
 		CommandLine cmd = null;
@@ -45,6 +45,10 @@ public class Runtime {
 			case "warn":
 			case "2":
 				LoggingService.DefaultLogging.setLoggingLevel(LoggingLevel.WARN);
+				break;
+			case "info":
+			case "3":
+				LoggingService.DefaultLogging.setLoggingLevel(LoggingLevel.ERROR);
 				break;
 			}
 		}
