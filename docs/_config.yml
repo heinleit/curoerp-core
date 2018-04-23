@@ -2,6 +2,3 @@ logo: /static/curo.png
 theme: jekyll-theme-cayman
 title: CuroERP Core
 description: The Core of CuroERP
-github:
-  is_project_page: true
-  repository_url: https://deploy.curoerp.de/core/
