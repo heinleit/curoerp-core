@@ -15,7 +15,7 @@ public class FunctionalityLoader {
 
 	public void initialize() {
 		try {
-			this._dependencyService.resolveType(ConfigService.class, IConfigService.class);
+			this._dependencyService.resolveTypes(ConfigService.class, IConfigService.class);
 		} catch (Exception e) {
 			throw new RuntimeTroubleException(e);
 		}
