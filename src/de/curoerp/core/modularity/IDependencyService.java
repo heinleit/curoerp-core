@@ -14,7 +14,7 @@ public interface IDependencyService {
 			ModuleControllerDoesntImplementApiException, ModuleApiClassNotFoundException, 
 			ModuleCanNotBootedException, DependencyNotResolvedException;
 	
-	public void resolveType(Class<?> type, Class<?> api) 
+	public void resolveTypes(Class<?> type, Class<?> api) 
 			throws DependencyNotResolvedException, ModuleCanNotBootedException, 
 			ModuleDependencyUnresolvableException, ModuleControllerClassException, 
 			ModuleControllerDoesntImplementApiException, ModuleApiClassNotFoundException;
