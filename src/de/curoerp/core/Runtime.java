@@ -6,6 +6,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
 import de.curoerp.core.exception.RuntimeTroubleException;
+import de.curoerp.core.info.CoreInfo;
+import de.curoerp.core.info.ICoreInfo;
 import de.curoerp.core.logging.Logging;
 import de.curoerp.core.logging.LoggingLevel;
 import de.curoerp.core.logging.LoggingService;
@@ -15,7 +17,7 @@ import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
 
 public class Runtime {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws DependencyNotResolvedException {
 		// start logging-service
 		LoggingService.DefaultLogging = new Logging(LoggingLevel.DEBUG);
 
@@ -55,6 +57,10 @@ public class Runtime {
 				break;
 			}
 		}
+		
+		LoggingService.info("Build CoreInfo");
+		CoreInfo info = new CoreInfo(cmd.getOptionValue("b"));
+		container.addResolvedDependency(ICoreInfo.class, info);
 
 		LoggingService.info("Start DlS");
 
