@@ -4,4 +4,4 @@ This is the Core-Framework for Curo-ERP!
 
 [Documentation](http://docs.curoerp.de/)
 
-Build-Status: *comming soon*
+Build-Status: [Documentation](http://docs.curoerp.de/)
