@@ -5,6 +5,8 @@ import java.io.File;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
+import de.curoerp.core.config.ConfigService;
+import de.curoerp.core.config.IConfigService;
 import de.curoerp.core.exception.RuntimeTroubleException;
 import de.curoerp.core.info.CoreInfo;
 import de.curoerp.core.info.ICoreInfo;
@@ -61,6 +63,9 @@ public class Runtime {
 		LoggingService.info("Build CoreInfo");
 		ICoreInfo info = new CoreInfo(cmd.getOptionValue("b"), new File(cmd.getOptionValue("s")));
 		container.addResolvedDependency(ICoreInfo.class, info);
+		
+		IConfigService configService = new ConfigService(info);
+		container.addResolvedDependency(IConfigService.class, configService);
 
 		LoggingService.info("Start DlS");
 
