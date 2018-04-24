@@ -3,6 +3,7 @@ package de.curoerp.core.config;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
@@ -27,8 +28,10 @@ public class ConfigService implements IConfigService {
 	public <T> ConfigInfo<T> loadConfig(String name, Class<T> type) {
 		ConfigInfo<T> info = new ConfigInfo<T>();
 		try {
-			info.instance = new Yaml(new Constructor(type)).loadAs(new FileReader(this.getConfigFile(name)), type);
-		} catch (FileNotFoundException e) {
+			FileReader reader = new FileReader(this.getConfigFile(name));
+			info.instance = new Yaml(new Constructor(type)).loadAs(reader, type);
+			reader.close();
+		} catch (IOException e) {
 			LoggingService.warn(e);
 		}
 		
