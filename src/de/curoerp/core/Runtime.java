@@ -59,14 +59,14 @@ public class Runtime {
 		}
 		
 		LoggingService.info("Build CoreInfo");
-		CoreInfo info = new CoreInfo(cmd.getOptionValue("b"));
+		ICoreInfo info = new CoreInfo(cmd.getOptionValue("b"), new File(cmd.getOptionValue("s")));
 		container.addResolvedDependency(ICoreInfo.class, info);
 
 		LoggingService.info("Start DlS");
 
 		// dependencies
 		try {
-			modules.loadModules(new File(cmd.getOptionValue("s")));
+			modules.loadModules(info.getModuleDir());
 			modules.boot();
 		} catch (RuntimeTroubleException e) {
 			LoggingService.error(e);
