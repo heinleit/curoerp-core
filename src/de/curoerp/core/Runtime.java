@@ -5,14 +5,14 @@ import java.io.File;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
-import de.curoerp.core.config.ConfigService;
-import de.curoerp.core.config.IConfigService;
 import de.curoerp.core.exception.RuntimeTroubleException;
-import de.curoerp.core.info.CoreInfo;
-import de.curoerp.core.info.ICoreInfo;
+import de.curoerp.core.functionality.FunctionalityLoader;
+import de.curoerp.core.functionality.info.CoreInfo;
+import de.curoerp.core.functionality.info.ICoreInfo;
 import de.curoerp.core.logging.Logging;
 import de.curoerp.core.logging.LoggingLevel;
 import de.curoerp.core.logging.LoggingService;
+import de.curoerp.core.modularity.DependencyService;
 import de.curoerp.core.modularity.ModuleService;
 import de.curoerp.core.modularity.dependency.DependencyContainer;
 import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
@@ -26,7 +26,8 @@ public class Runtime {
 		CLIService cli = new CLIService(args);
 		CommandLine cmd = null;
 		DependencyContainer container = new DependencyContainer();
-		ModuleService modules = new ModuleService(container);
+		DependencyService resolver = new DependencyService(container);
+		ModuleService modules = new ModuleService(resolver, container);
 
 		// parse cli
 		try {
@@ -61,11 +62,12 @@ public class Runtime {
 		}
 		
 		LoggingService.info("Build CoreInfo");
+		// Info isn't really resolvable, that's why we construct manually
 		ICoreInfo info = new CoreInfo(cmd.getOptionValue("b"), new File(cmd.getOptionValue("s")));
-		container.addResolvedDependency(ICoreInfo.class, info);
+		container.addResolvedDependency(info.getClass(), info);
 		
-		IConfigService configService = new ConfigService(info);
-		container.addResolvedDependency(IConfigService.class, configService);
+		FunctionalityLoader loader = new FunctionalityLoader(resolver);
+		loader.initialize();
 
 		LoggingService.info("Start DlS");
 
