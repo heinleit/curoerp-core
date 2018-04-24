@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import de.curoerp.core.logging.LoggingService;
-import de.curoerp.core.modularity.dependency.DependencyContainer;
+import de.curoerp.core.modularity.dependency.IDependencyContainer;
 import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
 import de.curoerp.core.modularity.exception.ModuleApiClassNotFoundException;
 import de.curoerp.core.modularity.exception.ModuleCanNotBootedException;
@@ -24,11 +24,11 @@ import de.curoerp.core.modularity.module.TypeInfo;
  * @author Hendrik Heinle
  * @since 16.04.2018
  */
-public class DependencyService {
+public class DependencyService implements IDependencyService {
 
-	private DependencyContainer container;
+	private IDependencyContainer container;
 
-	public DependencyService(DependencyContainer container) {
+	public DependencyService(IDependencyContainer container) {
 		this.container = container;
 	}
 
@@ -91,12 +91,30 @@ public class DependencyService {
 		}
 
 	}
+	
+	public void resolveTypes(Class<?> type, Class<?> api) 
+			throws DependencyNotResolvedException, ModuleCanNotBootedException, 
+			ModuleDependencyUnresolvableException, ModuleControllerClassException, 
+			ModuleControllerDoesntImplementApiException, ModuleApiClassNotFoundException {
+		// check type
+		this.checkResolvement(type, api != null ? api.getName() : "", new TypeInfo[] {});
+		LoggingService.info("# validated");
+
+		Object obj = createInstance(type);
+
+		if(obj == null) {
+			return;
+		}
+
+		// Nullpointer is no option, it's an other problem!
+		this.container.addResolvedDependency(obj.getClass(), obj);
+	}
 
 	/*
 	 * Instantiation
 	 */
 
-	private Object createInstance(Class<?> type) throws ModuleCanNotBootedException {
+	public Object createInstance(Class<?> type) throws ModuleCanNotBootedException {
 		Object obj = null;
 
 		try {

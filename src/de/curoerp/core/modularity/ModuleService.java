@@ -9,9 +9,9 @@ import java.util.MissingResourceException;
 
 import de.curoerp.core.exception.RuntimeTroubleException;
 import de.curoerp.core.logging.LoggingService;
-import de.curoerp.core.modularity.dependency.DependencyContainer;
 import de.curoerp.core.modularity.dependency.DependencyInfo;
 import de.curoerp.core.modularity.dependency.DependencyLimitation;
+import de.curoerp.core.modularity.dependency.IDependencyContainer;
 import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
 import de.curoerp.core.modularity.exception.ModuleApiClassNotFoundException;
 import de.curoerp.core.modularity.exception.ModuleBasePathNotExistsException;
@@ -38,12 +38,12 @@ import de.curoerp.core.modularity.module.Module;
 public class ModuleService {
 
 	private Module[] modules = new Module[0];
-	private DependencyService resolver;
+	private IDependencyService resolver;
 	private boolean booted = false;
-	private DependencyContainer container;
+	private IDependencyContainer container;
 
-	public ModuleService(DependencyContainer container) {
-		this.resolver = new DependencyService(container);
+	public ModuleService(IDependencyService resolver, IDependencyContainer container) {
+		this.resolver = resolver;
 		this.container = container;
 	}
 

@@ -1,4 +1,4 @@
-package de.curoerp.core.config;
+package de.curoerp.core.functionality.config;
 
 import java.io.File;
 import java.io.FileReader;
@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
-import de.curoerp.core.info.ICoreInfo;
+import de.curoerp.core.functionality.info.ICoreInfo;
 import de.curoerp.core.logging.LoggingService;
 
 
