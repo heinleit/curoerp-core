@@ -140,13 +140,14 @@ public class ModuleService {
 	 */
 	public void boot() {
 
+		// Prefetch Libraries
+		this.libraries();
+		LoggingService.info("libraries fetched: " + String.join(", ", this.libaries.stream().toArray(c -> new String[c])));
+
 		// Fetch&Load Jars in Runtime
 		this.hang();
 		LoggingService.info("module-jars successfully heaped in runtime: " + String.join(", ", Arrays.stream(this.modules).map(m -> m.getDisplayName()).toArray(c -> new String[c])));
 
-		this.libraries();
-		LoggingService.info("module-jars successfully heaped in runtime: " + String.join(", ", Arrays.stream(this.modules).map(m -> m.getDisplayName()).toArray(c -> new String[c])));
-		
 		// Check module-dependencies
 		this.check();
 		LoggingService.info("all module-dependencies found");
