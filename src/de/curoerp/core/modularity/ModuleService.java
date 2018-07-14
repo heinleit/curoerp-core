@@ -2,12 +2,18 @@ package de.curoerp.core.modularity;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.MissingResourceException;
 
 import de.curoerp.core.exception.RuntimeTroubleException;
+import de.curoerp.core.functionality.info.ICoreInfo;
 import de.curoerp.core.logging.LoggingService;
 import de.curoerp.core.modularity.dependency.DependencyInfo;
 import de.curoerp.core.modularity.dependency.DependencyLimitation;
@@ -41,10 +47,12 @@ public class ModuleService {
 	private IDependencyService resolver;
 	private boolean booted = false;
 	private IDependencyContainer container;
+	private ICoreInfo coreInfo;
 
-	public ModuleService(IDependencyService resolver, IDependencyContainer container) {
+	public ModuleService(IDependencyService resolver, IDependencyContainer container, ICoreInfo coreInfo) {
 		this.resolver = resolver;
 		this.container = container;
+		this.coreInfo = coreInfo;
 	}
 
 	/**
@@ -136,6 +144,9 @@ public class ModuleService {
 		this.hang();
 		LoggingService.info("module-jars successfully heaped in runtime: " + String.join(", ", Arrays.stream(this.modules).map(m -> m.getDisplayName()).toArray(c -> new String[c])));
 
+		this.libraries();
+		LoggingService.info("module-jars successfully heaped in runtime: " + String.join(", ", Arrays.stream(this.modules).map(m -> m.getDisplayName()).toArray(c -> new String[c])));
+		
 		// Check module-dependencies
 		this.check();
 		LoggingService.info("all module-dependencies found");
@@ -160,6 +171,26 @@ public class ModuleService {
 				module.fetchJar();
 			} catch (ModuleFileAlreadyLoadedException | ModuleCanNotBeLoadedException e) {
 				throw new RuntimeTroubleException(e);
+			}
+		}
+	}
+	
+	private ArrayList<String> libaries = new ArrayList<>();
+	
+	private void libraries() {
+		for (Module module : modules) {
+			for (String lib : module.getLibraries()) {
+				if(libaries.contains(lib)) continue;
+				try {
+					URLClassLoader classLoader = (URLClassLoader)ClassLoader.getSystemClassLoader();
+					Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+					method.setAccessible(true);
+					method.invoke(classLoader, new File(this.coreInfo.getLibaryDir() + "/" + lib).toURI().toURL());
+				} catch (IOException | NoSuchMethodException 
+						| SecurityException | IllegalAccessException
+						| IllegalArgumentException | InvocationTargetException e) {
+					throw new RuntimeTroubleException(e);
+				}
 			}
 		}
 	}

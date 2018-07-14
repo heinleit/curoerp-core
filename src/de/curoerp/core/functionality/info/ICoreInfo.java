@@ -8,5 +8,6 @@ public interface ICoreInfo {
 	public File getBaseDir();
 	public File getModuleDir();
 	public File getConfigDir();
+	public File getLibaryDir();
 	
 }

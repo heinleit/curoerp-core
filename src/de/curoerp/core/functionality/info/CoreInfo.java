@@ -40,4 +40,9 @@ public class CoreInfo implements ICoreInfo {
 		return subDir("config");
 	}
 
+	@Override
+	public File getLibaryDir() {
+		return subDir("lib");
+	}
+
 }

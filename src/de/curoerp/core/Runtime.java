@@ -27,7 +27,6 @@ public class Runtime {
 		CommandLine cmd = null;
 		DependencyContainer container = new DependencyContainer();
 		DependencyService resolver = new DependencyService(container);
-		ModuleService modules = new ModuleService(resolver, container);
 
 		// parse cli
 		try {
@@ -39,6 +38,13 @@ public class Runtime {
 			cli.displayHelp();
 			return;
 		}
+		
+		LoggingService.info("Build CoreInfo");
+		// Info isn't really resolvable, that's why we construct manually
+		ICoreInfo info = new CoreInfo(cmd.getOptionValue("b"), new File(cmd.getOptionValue("s")));
+		container.addResolvedDependency(info.getClass(), info);
+
+		ModuleService modules = new ModuleService(resolver, container, info);
 
 		// logging-level
 		if(CLIService.check(cmd, "l")) {
@@ -60,11 +66,6 @@ public class Runtime {
 				break;
 			}
 		}
-		
-		LoggingService.info("Build CoreInfo");
-		// Info isn't really resolvable, that's why we construct manually
-		ICoreInfo info = new CoreInfo(cmd.getOptionValue("b"), new File(cmd.getOptionValue("s")));
-		container.addResolvedDependency(info.getClass(), info);
 		
 		FunctionalityLoader loader = new FunctionalityLoader(resolver);
 		loader.initialize();

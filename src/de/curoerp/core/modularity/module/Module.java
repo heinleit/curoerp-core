@@ -124,6 +124,15 @@ public class Module implements IModule {
 	}
 
 	/**
+	 * Get Libraries
+	 * 
+	 * @return {@link String}[]
+	 */
+	public String[] getLibraries() {
+		return this.info.libraries;
+	}
+
+	/**
 	 * Get Dependency-Resolve Types
 	 * 
 	 * @return {@link TypeInfo}[]
@@ -152,7 +161,7 @@ public class Module implements IModule {
 	 * #                                                       #
 	 * #########################################################
 	 */
-	
+
 	private final Yaml YAML_MODULEINFO = new Yaml(new Constructor(ModuleInfo.class));
 
 	/**
@@ -164,7 +173,7 @@ public class Module implements IModule {
 		if(isDebug) {
 			return;
 		}
-		
+
 		try {
 			JarFile jarFile = new JarFile(this.file);
 			InputStream stream = jarFile.getInputStream(jarFile.getEntry("cmod.yml"));
@@ -253,7 +262,7 @@ public class Module implements IModule {
 		if(isDebug) {
 			return;
 		}
-		
+
 		if(this.isLoaded) {
 			throw new ModuleFileAlreadyLoadedException();
 		}
@@ -275,6 +284,5 @@ public class Module implements IModule {
 		}
 
 		this.isLoaded = true;
-	}
-
+	}	
 }
