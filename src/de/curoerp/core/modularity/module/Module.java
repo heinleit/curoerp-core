@@ -55,10 +55,10 @@ public class Module implements IModule {
 	 * @param Jar-{@link File}
 	 * @throws DependencyLimitationException 
 	 */
-	public Module(VersionInfo version, ModuleInfo module) throws DependencyLimitationException {
+	public Module(ModuleInfo module) throws DependencyLimitationException {
 		this.isDebug = true;
 		this.isLoaded = true;
-		this.version = version;
+		this.version = new VersionInfo(module.version);
 		this.info = module;
 		System.out.println("MODULE NAME: " + this.info.name);
 		this.parseDependencies();
