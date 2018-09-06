@@ -1,2 +1,2 @@
 language: java
-script: mvn build
+script: mvn clean package -Djar.finalName="CuroERP-Core_0.0.1"
