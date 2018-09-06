@@ -2,16 +2,12 @@ package de.curoerp.core.modularity.module;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.jar.JarFile;
-
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.Constructor;
 
 import de.curoerp.core.modularity.dependency.DependencyInfo;
 import de.curoerp.core.modularity.dependency.DependencyLimitation;
@@ -54,11 +50,12 @@ public class Module implements IModule {
 	 * 
 	 * @param Jar-{@link File}
 	 * @throws DependencyLimitationException 
+	 * @throws ModuleVersionStringInvalidException 
 	 */
-	public Module(VersionInfo version, ModuleInfo module) throws DependencyLimitationException {
+	public Module(ModuleInfo module) throws DependencyLimitationException, ModuleVersionStringInvalidException {
 		this.isDebug = true;
 		this.isLoaded = true;
-		this.version = version;
+		this.version = new VersionInfo(module.version);
 		this.info = module;
 		System.out.println("MODULE NAME: " + this.info.name);
 		this.parseDependencies();
@@ -162,8 +159,6 @@ public class Module implements IModule {
 	 * #########################################################
 	 */
 
-	public final static Yaml YAML_MODULEINFO = new Yaml(new Constructor(ModuleInfo.class));
-
 	/**
 	 * Fetch module-information from jar-file/cmod.yml
 	 * 
@@ -176,11 +171,9 @@ public class Module implements IModule {
 
 		try {
 			JarFile jarFile = new JarFile(this.file);
-			InputStream stream = jarFile.getInputStream(jarFile.getEntry("cmod.yml"));
-			ModuleInfo info = YAML_MODULEINFO.loadAs(stream, ModuleInfo.class);
+			ModuleInfo info = ModuleInfo.get(jarFile);
 
 			//cleanup
-			stream.close();
 			jarFile.close();
 
 			// VersionInfo

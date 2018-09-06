@@ -14,9 +14,12 @@ For some reasons it is very practically to debug your model without building (FE
 
 ``` java
 public static void main(String[] args) {
-	
-	Runtime r = new Runtime("lowercase module name", new File("some/path/here"), LoggingLevel.DEBUG, true);
-    r.init();
+		Runtime r = new Runtime("HeinleITServicedeskServer".toLowerCase(), new File("C:\\Users\\Hendrik Heinle\\Documents\\Dev\\svdsk\\testing"));
+		r.init(new ModuleInfo[]{
+				ModuleInfo.get(new File("../../src/share/bin/cmod.yml")),
+				ModuleInfo.get(new File("../../src/server/bin/cmod.yml")),
+				ModuleInfo.get(new JarFile(new File("../../lib/CuroERP-Pipeline.jar").getAbsolutePath()))
+		});
 }
 ```
 

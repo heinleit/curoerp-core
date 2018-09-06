@@ -1,9 +1,7 @@
 package de.curoerp.core.modularity;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -13,7 +11,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.MissingResourceException;
 
-import de.curoerp.core.PackageService;
 import de.curoerp.core.exception.RuntimeTroubleException;
 import de.curoerp.core.functionality.info.ICoreInfo;
 import de.curoerp.core.logging.LoggingService;
@@ -36,7 +33,6 @@ import de.curoerp.core.modularity.module.IBootModule;
 import de.curoerp.core.modularity.module.IModule;
 import de.curoerp.core.modularity.module.Module;
 import de.curoerp.core.modularity.module.ModuleInfo;
-import de.curoerp.core.modularity.versioning.VersionInfo;
 
 /**
  * Central Module Service for internal..
@@ -131,18 +127,15 @@ public class ModuleService {
 	 * 
 	 * NEVER AFTER BOOT!
 	 */
-	public void loadModules() {
+	public void loadModules(ModuleInfo[] infos) {
 		if(this.booted) {
 			throw new RuntimeTroubleException(new ModuleServiceAllreadyBootedException());
 		}
-		PackageService svc = new PackageService();
 		
 		ArrayList<Module> modules = new ArrayList<>();
-		for (File cmodFile : svc.findFiles("cmod\\.yml")) {
+		for (ModuleInfo info : infos) {
 			try {
-				InputStream stream = new FileInputStream(cmodFile);
-				ModuleInfo info = Module.YAML_MODULEINFO.loadAs(stream, ModuleInfo.class);
-				modules.add(new Module(new VersionInfo(info.version), info));
+				modules.add(new Module(info));
 			} catch (Exception e) {
 				LoggingService.error(e);
 			}

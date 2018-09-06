@@ -15,6 +15,7 @@ import de.curoerp.core.modularity.DependencyService;
 import de.curoerp.core.modularity.ModuleService;
 import de.curoerp.core.modularity.dependency.DependencyContainer;
 import de.curoerp.core.modularity.exception.DependencyNotResolvedException;
+import de.curoerp.core.modularity.module.ModuleInfo;
 
 public class Runtime {
 
@@ -22,15 +23,12 @@ public class Runtime {
 	private DependencyService resolver;
 	private CoreInfo info;
 	private String bootModule;
-	private boolean debug;
-
-	public Runtime(String bootModule, File baseFile, boolean debug) throws DependencyNotResolvedException {
-		this(bootModule, baseFile, LoggingLevel.DEBUG, debug);
+	public Runtime(String bootModule, File baseFile) throws DependencyNotResolvedException {
+		this(bootModule, baseFile, LoggingLevel.DEBUG);
 	}
 
-	public Runtime(String bootModule, File baseFile, LoggingLevel logging, boolean debug) throws DependencyNotResolvedException {
+	public Runtime(String bootModule, File baseFile, LoggingLevel logging) throws DependencyNotResolvedException {
 		this.bootModule = bootModule;
-		this.debug = debug;
 		// start logging-service
 		LoggingService.DefaultLogging = new Logging(LoggingLevel.DEBUG);
 
@@ -47,28 +45,36 @@ public class Runtime {
 		// modules
 		this.modules = new ModuleService(this.resolver, container, this.info);
 
-	}
-
-	public void init() {
+		// some nice shit
 		FunctionalityLoader loader = new FunctionalityLoader(this.resolver);
 		loader.initialize();
+	}
 
-
-		LoggingService.info("Start DlS");
-
-		// dependencies
+	public void init(ModuleInfo[] infos) {
 		try {
-			if(debug) {
-				this.modules.loadModules();
-			} else {
-				this.modules.loadModules(this.info.getModuleDir());
-			}
-
-			this.modules.boot();
+			this.modules.loadModules(infos);
+			this.boot();
 		} catch (RuntimeTroubleException e) {
 			LoggingService.error(e);
 			return;
 		}
+	}
+
+	public void init() {
+		LoggingService.info("Start DlS");
+
+		// dependencies
+		try {
+			this.modules.loadModules(this.info.getModuleDir());
+			this.boot();
+		} catch (RuntimeTroubleException e) {
+			LoggingService.error(e);
+			return;
+		}
+	}
+
+	private void boot() throws RuntimeTroubleException {
+		this.modules.boot();
 
 		LoggingService.info("DlS started!");
 
@@ -121,7 +127,7 @@ public class Runtime {
 			}
 		}
 
-		Runtime r = new Runtime(cmd.getOptionValue("b"), new File(cmd.getOptionValue("s")), level, false);
+		Runtime r = new Runtime(cmd.getOptionValue("b"), new File(cmd.getOptionValue("s")), level);
 		r.init();
 	}
 
