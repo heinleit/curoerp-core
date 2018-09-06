@@ -23,11 +23,11 @@ public class Runtime {
 	private CoreInfo info;
 	private String bootModule;
 	private boolean debug;
-	
+
 	public Runtime(String bootModule, File baseFile, boolean debug) throws DependencyNotResolvedException {
 		this(bootModule, baseFile, LoggingLevel.DEBUG, debug);
 	}
-	
+
 	public Runtime(String bootModule, File baseFile, LoggingLevel logging, boolean debug) throws DependencyNotResolvedException {
 		this.bootModule = bootModule;
 		this.debug = debug;
@@ -37,22 +37,22 @@ public class Runtime {
 		// start di container and resolver
 		DependencyContainer container = new DependencyContainer();
 		this.resolver = new DependencyService(container);
-		
+
 		// info
 		LoggingService.info("Build CoreInfo");
 		// Info isn't really resolvable, that's why we construct manually
 		this.info = new CoreInfo(bootModule, baseFile);
 		container.addResolvedDependency(this.info.getClass(), this.info);
-		
+
 		// modules
 		this.modules = new ModuleService(this.resolver, container, this.info);
-		
+
 	}
-	
+
 	public void init() {
 		FunctionalityLoader loader = new FunctionalityLoader(this.resolver);
 		loader.initialize();
-		
+
 
 		LoggingService.info("Start DlS");
 
@@ -63,7 +63,7 @@ public class Runtime {
 			} else {
 				this.modules.loadModules(this.info.getModuleDir());
 			}
-			
+
 			this.modules.boot();
 		} catch (RuntimeTroubleException e) {
 			LoggingService.error(e);
@@ -98,9 +98,9 @@ public class Runtime {
 			cli.displayHelp();
 			return;
 		}
-		
+
 		// logging-level
-		LoggingLevel level = LoggingLevel.DEBUG;
+		LoggingLevel level = null;
 		if(CLIService.check(cmd, "l")) {
 			switch (cmd.getOptionValue("l").toLowerCase().trim()) {
 			case "error":
@@ -114,6 +114,9 @@ public class Runtime {
 			case "info":
 			case "3":
 				level = LoggingLevel.INFO;
+				break;
+			default:
+				level = LoggingLevel.DEBUG;
 				break;
 			}
 		}
