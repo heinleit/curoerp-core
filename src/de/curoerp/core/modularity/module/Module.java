@@ -162,7 +162,7 @@ public class Module implements IModule {
 	 * #########################################################
 	 */
 
-	private final Yaml YAML_MODULEINFO = new Yaml(new Constructor(ModuleInfo.class));
+	public final static Yaml YAML_MODULEINFO = new Yaml(new Constructor(ModuleInfo.class));
 
 	/**
 	 * Fetch module-information from jar-file/cmod.yml

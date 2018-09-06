@@ -1,8 +1,9 @@
 package de.curoerp.core.modularity;
 
 import java.io.File;
-import java.io.FilenameFilter;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.MissingResourceException;
 
+import de.curoerp.core.PackageService;
 import de.curoerp.core.exception.RuntimeTroubleException;
 import de.curoerp.core.functionality.info.ICoreInfo;
 import de.curoerp.core.logging.LoggingService;
@@ -33,6 +35,8 @@ import de.curoerp.core.modularity.language.LocaleService;
 import de.curoerp.core.modularity.module.IBootModule;
 import de.curoerp.core.modularity.module.IModule;
 import de.curoerp.core.modularity.module.Module;
+import de.curoerp.core.modularity.module.ModuleInfo;
+import de.curoerp.core.modularity.versioning.VersionInfo;
 
 /**
  * Central Module Service for internal..
@@ -107,12 +111,8 @@ public class ModuleService {
 			throw new RuntimeTroubleException(new ModuleBasePathNotExistsException());
 		}
 
-		Module[] modules = (Module[]) Arrays.stream(directory.listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				return name.endsWith(".cmod.jar");
-			}
-		})).map(file -> new Module(file)).toArray(length -> new Module[length]);
+		Module[] modules = (Module[]) Arrays.stream(directory.listFiles((d, n) -> n.endsWith(".cmod.jar")))
+				.map(file -> new Module(file)).toArray(length -> new Module[length]);
 
 		try {
 			for (Module module : modules) {
@@ -124,6 +124,33 @@ public class ModuleService {
 
 		this.modules = modules;
 	}
+	
+	/**
+	 * load modules in jvm
+	 * only for debugging, very slow and dangerous!
+	 * 
+	 * NEVER AFTER BOOT!
+	 */
+	public void loadModules() {
+		if(this.booted) {
+			throw new RuntimeTroubleException(new ModuleServiceAllreadyBootedException());
+		}
+		PackageService svc = new PackageService();
+		
+		ArrayList<Module> modules = new ArrayList<>();
+		for (File cmodFile : svc.findFiles("cmod\\.yml")) {
+			try {
+				InputStream stream = new FileInputStream(cmodFile);
+				ModuleInfo info = Module.YAML_MODULEINFO.loadAs(stream, ModuleInfo.class);
+				modules.add(new Module(new VersionInfo(info.version), info));
+			} catch (Exception e) {
+				LoggingService.error(e);
+			}
+		}
+
+		this.modules = modules.toArray(new Module[modules.size()]);
+	}
+	
 	/**
 	 * for debugging: Load Modules by Object-Array
 	 * 

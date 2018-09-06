@@ -22,13 +22,15 @@ public class Runtime {
 	private DependencyService resolver;
 	private CoreInfo info;
 	private String bootModule;
+	private boolean debug;
 	
-	public Runtime(String bootModule, File baseFile) throws DependencyNotResolvedException {
-		this(bootModule, baseFile, LoggingLevel.DEBUG);
+	public Runtime(String bootModule, File baseFile, boolean debug) throws DependencyNotResolvedException {
+		this(bootModule, baseFile, LoggingLevel.DEBUG, debug);
 	}
 	
-	public Runtime(String bootModule, File baseFile, LoggingLevel logging) throws DependencyNotResolvedException {
+	public Runtime(String bootModule, File baseFile, LoggingLevel logging, boolean debug) throws DependencyNotResolvedException {
 		this.bootModule = bootModule;
+		this.debug = debug;
 		// start logging-service
 		LoggingService.DefaultLogging = new Logging(LoggingLevel.DEBUG);
 
@@ -43,7 +45,7 @@ public class Runtime {
 		container.addResolvedDependency(this.info.getClass(), this.info);
 		
 		// modules
-		this.modules = new ModuleService(resolver, container, this.info);
+		this.modules = new ModuleService(this.resolver, container, this.info);
 		
 	}
 	
@@ -56,7 +58,12 @@ public class Runtime {
 
 		// dependencies
 		try {
-			this.modules.loadModules(this.info.getModuleDir());
+			if(debug) {
+				this.modules.loadModules();
+			} else {
+				this.modules.loadModules(this.info.getModuleDir());
+			}
+			
 			this.modules.boot();
 		} catch (RuntimeTroubleException e) {
 			LoggingService.error(e);
@@ -111,7 +118,7 @@ public class Runtime {
 			}
 		}
 
-		Runtime r = new Runtime(cmd.getOptionValue("b"), new File(cmd.getOptionValue("s")), level);
+		Runtime r = new Runtime(cmd.getOptionValue("b"), new File(cmd.getOptionValue("s")), level, false);
 		r.init();
 	}
 
